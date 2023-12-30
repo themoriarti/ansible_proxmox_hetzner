@@ -8,5 +8,5 @@ roles/hetzner_pve/vars
 **/*.local
 inventory/hosts
 
-group_vars/vmhost/hetzner_pve.yml
+group_vars/vars.yml
 inventory/hosts

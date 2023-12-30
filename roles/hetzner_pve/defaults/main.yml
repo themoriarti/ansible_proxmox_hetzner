@@ -5,10 +5,10 @@ hetzner_pve_hetzner_api_user: secret
 hetzner_pve_hetzner_api_pass: secret
 
 ### General Setup settings - TODO: Testing
-sysctl_config:
-  dev.raid.speed_limit_max: 1000
+# sysctl_config:
+#   dev.raid.speed_limit_max: 1000
 
-hetzner_pve_os: bullseye
+hetzner_pve_os: bookworm
 hetzner_pve_luks_pass: secret
 hetzner_pve_root_pass: secret
 hetzner_pve_ssh_keys: []
@@ -16,8 +16,8 @@ hetzner_pve_ssh_keys: []
 # RAID level to use
 hetzner_pve_swraid: 1
 hetzner_pve_drive_paths:
-  - '/dev/sda'
-  - '/dev/sdb'
+  - "/dev/sda"
+  - "/dev/sdb"
 # encrypt extra drives; only runs in a RAID0 config (hetzner_pve_swraid=0)
 hetzner_pve_ext_drives_encrypt:
   # - path: '/dev/sdc'
@@ -117,8 +117,8 @@ opn_group:
       - member: 2000
 
 hetzner_pve_custom_packages:
+  - nano
   - screen
-  - vim
   - htop
   - iotop
   - jnettop
@@ -131,21 +131,21 @@ hetzner_pbs_custom_packages:
 
 hetzner_pve_cloud_images_setup: true
 hetzner_pve_cloud_images:
+  # - id: 9001
+  #   name: bionic
+  #   username: ubuntu
+  #   url: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+  #   memory: 2048
+  #   bridge: "{{ hetzner_pve_opnsense_vm_settings.lan_bridge }}"
+  #   storage: local
+  # - id: 9002
+  #   name: focal
+  #   username: ubuntu
+  #   url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+  #   memory: 2048
+  #   bridge: "{{ hetzner_pve_opnsense_vm_settings.lan_bridge }}"
+  #   storage: local
   - id: 9001
-    name: bionic
-    username: ubuntu
-    url: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
-    memory: 2048
-    bridge: "{{ hetzner_pve_opnsense_vm_settings.lan_bridge }}"
-    storage: local
-  - id: 9002
-    name: focal
-    username: ubuntu
-    url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
-    memory: 2048
-    bridge: "{{ hetzner_pve_opnsense_vm_settings.lan_bridge }}"
-    storage: local
-  - id: 9003
     name: jammy
     username: ubuntu
     url: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
