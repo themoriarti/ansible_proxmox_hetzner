@@ -16,8 +16,8 @@ hetzner_pve_ssh_keys: []
 # RAID level to use
 hetzner_pve_swraid: 1
 hetzner_pve_drive_paths:
-  - "/dev/sda"
   - "/dev/sdb"
+  - "/dev/sdc"
 # encrypt extra drives; only runs in a RAID0 config (hetzner_pve_swraid=0)
 hetzner_pve_ext_drives_encrypt:
   # - path: '/dev/sdc'
@@ -125,6 +125,7 @@ hetzner_pve_custom_packages:
   - tcpdump
   - zsh
   - git
+  - zfsutils-linux
 
 hetzner_pbs_custom_packages:
   - proxmox-backup-server

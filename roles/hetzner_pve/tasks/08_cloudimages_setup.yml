@@ -3,10 +3,10 @@
   ansible.builtin.get_url:
     url: "{{ item.url }}"
     dest: "/tmp/{{ item.name }}.img"
-    mode: '0644'
+    mode: "0644"
   with_items: "{{ hetzner_pve_cloud_images }}"
 
-- name: Cloudimages - Creating dloud-init templates
+- name: Cloudimages - Creating cloud-init templates
   shell: |
     qm destroy {{ item.id }}
     virt-customize -a /tmp/{{ item.name }}.img --install qemu-guest-agent

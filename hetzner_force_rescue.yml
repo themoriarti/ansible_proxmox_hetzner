@@ -1,0 +1,77 @@
+# FORCE SERVER INTO RESCUE MODE
+# WILL WIPE OUT EXISTING SERVER
+
+- hosts: vmhost
+  user: root
+  gather_facts: no
+  vars_files:
+    - ./roles/hetzner_pve/defaults/main.yml
+    - ./roles/hetzner_pve/vars/main.yml
+
+  tasks:
+    - name: Check for SSH Key - If not - create a new key
+      community.crypto.openssh_keypair:
+        path: "~/.ssh/id_ed25519_ansible"
+        type: ed25519
+      delegate_to: localhost
+      run_once: true
+      when: hetzner_pve_ssh_keys is defined and (hetzner_pve_ssh_keys|length==0)
+
+    - name: Set public key
+      ansible.legacy.set_fact:
+        hetzner_pve_ssh_keys:
+          - "{{ lookup('file', '~/.ssh/id_ed25519_ansible.pub') }}"
+      when: hetzner_pve_ssh_keys is defined and (hetzner_pve_ssh_keys | length==0)
+
+    - name: HETZNER - Add SSH key
+      community.hrobot.ssh_key:
+        hetzner_user: "{{ hetzner_pve_hetzner_api_user }}"
+        hetzner_password: "{{ hetzner_pve_hetzner_api_pass }}"
+        state: present
+        name: ansible - hetzner_pve
+        public_key: "{{ hetzner_pve_ssh_keys.0 }}"
+      delegate_to: localhost
+
+    - name: HETZNER - Get all SSH Keys
+      community.hrobot.ssh_key_info:
+        hetzner_user: "{{ hetzner_pve_hetzner_api_user }}"
+        hetzner_password: "{{ hetzner_pve_hetzner_api_pass }}"
+      register: ssh_keys
+      delegate_to: localhost
+
+    - name: HETZNER - Enable a rescue system (64bit Linux) for the next boot
+      community.hrobot.boot:
+        hetzner_user: "{{ hetzner_pve_hetzner_api_user }}"
+        hetzner_password: "{{ hetzner_pve_hetzner_api_pass }}"
+        server_number: "{{ ENV_INVENTORY_SRV_NO }}"
+        rescue:
+          os: linux
+          authorized_keys: "{{ ssh_keys.ssh_keys | map(attribute='fingerprint') | list }}"
+      delegate_to: localhost
+
+    - name: HETZNER - Reset SERVER
+      community.hrobot.reset:
+        hetzner_user: "{{ hetzner_pve_hetzner_api_user }}"
+        hetzner_password: "{{ hetzner_pve_hetzner_api_pass }}"
+        server_number: "{{ ENV_INVENTORY_SRV_NO }}"
+        reset_type: hardware
+      delegate_to: localhost
+
+    - name: LOCAL - Add ssh key
+      local_action: shell /usr/bin/ssh-add ~/.ssh/id_ed25519_ansible
+      ignore_errors: True
+
+    - name: LOCAL - Remove server from local known_hosts file
+      local_action: shell /usr/bin/ssh-keygen -R {{ inventory_hostname }}
+      ignore_errors: True
+
+    - name: LOCAL - Pause for a while for the reboot to kick in
+      pause: seconds=30
+
+    - name: HETZNER - Waiting for server to come back
+      local_action:
+        module: wait_for
+          host={{ inventory_hostname }}
+          port=22
+          delay=1
+          timeout=120

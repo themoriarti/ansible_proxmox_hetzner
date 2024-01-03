@@ -1,0 +1,30 @@
+- hosts: vmhost
+  user: root
+  gather_facts: no
+  vars_files:
+    - ./roles/hetzner_pve/defaults/main.yml
+    - ./roles/hetzner_pve/vars/main.yml
+
+  tasks:
+    - name: Collect only facts about hardware
+      setup:
+        gather_subset:
+          - hardware
+    # - debug:
+    #     var: ansible_devices.sda.links.ids[0]
+
+    - name: Output disks
+      debug:
+        msg:
+          - label "/dev/nvme0n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme0n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme0n1.links.ids[0]}} "
+          - label "/dev/nvme1n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme1n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme1n1.links.ids[0]}} "
+          - label "/dev/nvme2n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme2n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme2n1.links.ids[0]}} "
+          - label "/dev/nvme3n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme3n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme3n1.links.ids[0]}} "
+# Need to find a way to get the correct sda sdb into the bookwork.conf template automatically
+# For now it is manual
+
+# - name: Deploy Hetzner installimage config
+#   ansible.builtin.template:
+#     src: "roles/hetzner_pve/templates/setup_bookworm.conf.j2"
+#     dest: "~/ansible_setup_test.conf"
+#   delegate_to: localhost

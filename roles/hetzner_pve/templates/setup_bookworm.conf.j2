@@ -1,7 +1,4 @@
-CRYPTPASSWORD {{ hetzner_pve_luks_pass }}
-CRYPT 1
-
-{% for drive in hetzner_pve_drive_paths %}
+{% for drive in hostvars[inventory_hostname].hetzner_pve_drive_paths %}
 DRIVE{{ loop.index }} {{ drive }}
 {% endfor %}
 
@@ -15,8 +12,10 @@ IPV4_ONLY yes
 
 USE_KERNEL_MODE_SETTING yes
 
-PART /boot/efi esp 256M
-PART /boot ext4 2G
-PART /     ext4 80G crypt
+PART  /boot  ext3  1024M
+PART  lvm    vg0    all
+LV  vg0  root  /     ext4  50G
+LV  vg0  swap  swap  swap   6G
+
 IMAGE /root/images/Debian-bookworm-latest-amd64-base.tar.gz
 SSHKEYS_URL /tmp/authorized_keys

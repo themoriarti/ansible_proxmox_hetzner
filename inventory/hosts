@@ -1,8 +1,12 @@
-
 [all:vars]
 # # needed, otherwise Hetzner server freezes durin Proxmox install packages
 # # '-o ServerAliveInterval=30 -o ControlMaster=auto -o ControlPersist=60s'
 ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=30 -o ControlMaster=auto -o ControlPersist=60s"
+# ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=30 -o ControlMaster=auto -o ControlPersist=60s PreferredAuthentications=publickey"
+
 
 [vmhost]
-prox02.yourdomain.localdomain ansible_host=138.201.194.99 ENV_INVENTORY_SRV_NO=2163269
+prox02.84lmr.com ansible_host=135.181.140.236 ENV_INVENTORY_SRV_NO=2227394
+
+[vmhost:vars]
+hetzner_pve_drive_paths=["/dev/nvme1n1","/dev/nvme2n1"]

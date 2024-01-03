@@ -1,0 +1,40 @@
+- hosts: vmhost
+  user: root
+  gather_facts: no
+  vars_files:
+    - ./roles/hetzner_pve/defaults/main.yml
+    - ./roles/hetzner_pve/vars/main.yml
+
+  tasks:
+    - name: Reboot host and wait for it to restart
+      reboot:
+        msg: "Reboot initiated by Ansible"
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: 20
+        post_reboot_delay: 90
+        test_command: whoami
+
+  #     - name: PROXMOX - Reboot required after package upgrades?
+  #     register: hetzner_pve_proxmox_package_upgrades_reboot
+  #     stat: path=/var/run/reboot-required
+
+  #   - ansible.builtin.debug:
+  #       msg:
+  #         - "Label:  {{ hetzner_pve_proxmox_package_upgrades_reboot.stat.exists }}"
+  # #notify: Restart vmhost
+
+  # - name: LOCAL - Remove server from local known_hosts file
+  #   local_action: shell /usr/bin/ssh-keygen -R {{ inventory_hostname }}
+  #   ignore_errors: True
+
+  # - name: LOCAL - Pause for a while for the reboot to kick in
+  #   pause: seconds=60
+
+  # - name: HETZNER - Waiting for server to come back
+  #   local_action:
+  #     module: wait_for
+  #       host={{ inventory_hostname }}
+  #       port=22
+  #       delay=1
+  #       timeout=90

@@ -265,7 +265,7 @@ deb https://httpredir.debian.org/debian/ ${OS_CODENAME} main contrib non-free
 deb https://security.debian.org/debian-security ${OS_CODENAME}/updates main contrib
 EOF
 
-# Refresh the package lists
+# Refresh the package listscd /
 apt-get update > /dev/null 2>&1
 
 # Remove conflicting utilities
@@ -529,35 +529,7 @@ fi
 
 if [ "${XS_FAIL2BAN,,}" == "yes" ] ; then
     ## Protect the web interface with fail2ban
-    /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::='--force-confdef' install fail2ban
-    # shellcheck disable=1117
-cat <<EOF > /etc/fail2ban/filter.d/proxmox.conf
-[Definition]
-failregex = pvedaemon\[.*authentication failure; rhost=<HOST> user=.* msg=.*
-ignoreregex =
-EOF
-
-cat <<EOF > /etc/fail2ban/jail.d/proxmox.conf
-[proxmox]
-enabled = true
-port = https,http,8006,8007
-filter = proxmox
-logpath = /var/log/daemon.log
-maxretry = 3
-# 1 hour
-bantime = 3600
-findtime = 600
-EOF
-
-# cat <<EOF > /etc/fail2ban/jail.local
-# [DEFAULT]
-# banaction = iptables-ipset-proto4
-# EOF
-
-    systemctl enable fail2ban
-
-    #     ##testing
-    #     #fail2ban-regex /var/log/daemon.log /etc/fail2ban/filter.d/proxmox.conf
+    ## REMOVED AS NOW USE FAIL2BAN ROLE
 fi
 
 if [ "${XS_NOSUBBANNER,,}" == "yes" ] ; then

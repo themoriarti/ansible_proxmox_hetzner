@@ -33,7 +33,7 @@
     dest: /tmp/setup.conf
     owner: root
     group: root
-    mode: '0755'
+    mode: "0755"
   when: not hetzner_pve_installed.stat.exists
 
 - name: Deploy OS post install script
@@ -42,7 +42,7 @@
     dest: /tmp/post_install.sh
     owner: root
     group: root
-    mode: '0755'
+    mode: "0755"
   when: not hetzner_pve_installed.stat.exists
 
 - name: Deploy Hetzner Post Install Drives Setup
@@ -51,21 +51,19 @@
     dest: /tmp/post_install_drives_setup.sh
     owner: root
     group: root
-    mode: '0755'
+    mode: "0755"
   when: hetzner_pve_swraid == 0
 
 - name: Append /tmp/post_install_drives_setup.sh to /tmp/post_install.sh
   shell: cat /tmp/post_install_drives_setup.sh >> /tmp/post_install.sh
-  when: hetzner_pve_swraid == 0 
-
+  when: hetzner_pve_swraid == 0
 
 - name: Deploy ssh key
   ansible.builtin.template:
     src: authorized_keys.j2
     dest: /tmp/authorized_keys
-    mode: '0755'
+    mode: "0755"
   when: not hetzner_pve_installed.stat.exists
-
-- name: Disable mdadm
-  ansible.builtin.command: "mdadm --stop --scan"
-  when: (not hetzner_pve_installed.stat.exists) and (hetzner_pve_autorescue)
+# - name: Disable mdadm
+#   ansible.builtin.command: "mdadm --stop --scan"
+#   when: (not hetzner_pve_installed.stat.exists) and (hetzner_pve_autorescue)

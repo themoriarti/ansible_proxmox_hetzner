@@ -1,0 +1,10 @@
+{{ ansible_managed | comment }}
+
+[proxmox]
+enabled = true
+port = https,http,8006,8007
+filter = proxmox
+backend = systemd
+maxretry = 3
+findtime = 2d
+bantime = 1h

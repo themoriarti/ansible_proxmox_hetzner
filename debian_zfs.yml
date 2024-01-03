@@ -1,0 +1,70 @@
+- name: "Install ZFS pool"
+  hosts: vmhost
+  user: root
+
+  # Source for installation instructions:
+  #   https://openzfs.github.io/openzfs-docs/Getting%20Started/Debian/index.html#installation
+
+  # Install ZFS
+  # Check if pool exists
+  # Create pool
+  # Check each file system exists
+  # Somewhere proxmox needs to see each file system
+  vars:
+    # zfs_pool_name: tank
+    # # zfs_pool_mountpoint: /mnt/data
+    # zfs_pool_mode: mirror
+    # # Need to make host specific and get correct values
+    # zfs_pool_devices:
+    #   - ata-INTEL_SSDSC2BW???
+    #   - ata-INTEL_SSDSC2BW???
+    # zfs_pool_state: present
+    # zfs_pool_options:
+    #   - "ashift=12"
+    #   - "compression=lz4"
+
+    tasks:
+      - name: PROXMOX post tasks - Copy ZFS apt preferences
+        ansible.builtin.copy:
+          src: roles/hetzner_pve/files/90_zfs
+          dest: /etc/apt/preferences.d/90_zfs
+          owner: root
+          group: root
+          mode: "0755"
+
+      - name: Install ZFS part 1
+        ansible.builtin.apt:
+          pkg:
+            - dpkg-dev
+            - linux-headers-generic
+            - linux-image-generic
+
+      - name: Install ZFS part 2
+        ansible.builtin.apt:
+          pkg:
+            - zfs-dkms
+            - zfsutils-linux
+
+        # - name: check ZFS pool existance
+        #   command: zpool list -Ho name {{ zfs_pool_name }}
+        #   register: result_pool_list
+        #   ignore_errors: yes
+        #   changed_when: false
+
+        # - name: create ZFS pool
+        #   command: >-
+        #     zpool create
+        #     {{ '-o' if zfs_pool_options else '' }} {{ zfs_pool_options | join(' -o ') }}
+        #     {{ '-m ' + zfs_pool_mountpoint if zfs_pool_mountpoint else '' }}
+        #     {{ zfs_pool_name }}
+        #     {{ zfs_pool_mode if zfs_pool_mode else '' }}
+        #     {{ zfs_pool_devices | join(' ') }}
+        #   when:
+        #     - zfs_pool_state | default('present') == 'present'
+        #     - result_pool_list.rc == 1
+
+        # - name: destroy ZFS pool
+        #   command: zpool destroy {{ zfs_pool_name }}
+        #   when:
+        #     - zfs_pool_state | default('present') == 'absent'
+        #     - result_pool_list.rc == 0

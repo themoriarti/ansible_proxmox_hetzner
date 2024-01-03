@@ -1,5 +1,4 @@
 ---
-
 - name: Check for SSH Key - If not - create a new key
   community.crypto.openssh_keypair:
     path: "~/.ssh/id_ed25519_ansible"
@@ -13,6 +12,8 @@
     hetzner_pve_ssh_keys:
       - "{{ lookup('file', '~/.ssh/id_ed25519_ansible.pub') }}"
   when: hetzner_pve_ssh_keys is defined and (hetzner_pve_ssh_keys | length==0)
+
+# CHECK IF CAN SSH IN TO GET ansible_hostname -> if not then force rescue mode
 
 - name: HETZNER - Check for rescue mode
   ansible.builtin.debug:
@@ -72,11 +73,11 @@
     dest: /tmp/drives_wipe.sh
     owner: root
     group: root
-    mode: '0755'
+    mode: "0755"
   when: hetzner_pve_swraid == 0 and ansible_hostname == 'rescue'
 
 - name: HETZNER - Wipe Drives
-  ansible.builtin.shell: '/tmp/drives_wipe.sh'
+  ansible.builtin.shell: "/tmp/drives_wipe.sh"
   when: hetzner_pve_swraid == 0 and ansible_hostname == 'rescue'
 
 - name: Deploy Hetzner Post Install Drives Setup
@@ -85,5 +86,5 @@
     dest: /tmp/post_install_drives_setup.sh
     owner: root
     group: root
-    mode: '0755'
+    mode: "0755"
   when: hetzner_pve_swraid == 0 and ansible_hostname == 'rescue'

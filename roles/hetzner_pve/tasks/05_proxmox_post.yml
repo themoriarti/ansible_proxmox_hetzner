@@ -2,13 +2,13 @@
 - name: PROXMOX post tasks - Install required packages for unattended setup
   pip:
     name: pexpect
-  when: not hetzner_pve_acme_acc_registered.stat.exists 
+  when: not hetzner_pve_acme_acc_registered.stat.exists
 
 - name: PROXMOX post tasks - Register a new ACME account
   expect:
     command: "pvenode acme account register default {{ hetzner_pve_acme_mail }} --directory {{ hetzner_pve_acme_server }}"
     responses:
-      "Do you agree to the above terms?" : 'y'
+      "Do you agree to the above terms?": "y"
     echo: true
   when:
     - not hetzner_pve_acme_acc_registered.stat.exists
@@ -30,8 +30,8 @@
     dest: /tmp/xs-install-post.sh
     owner: root
     group: root
-    mode: '0755'
-  when: not hetzner_pve_xshock_installed.stat.exists
+    mode: "0755"
+  when: hetzner_pve_xs_setup and not hetzner_pve_xshock_installed.stat.exists
 
 - name: PROXMOX post tasks - Copy xshock post install settings
   ansible.builtin.template:
@@ -39,8 +39,8 @@
     dest: /tmp/xs-install-post.env
     owner: root
     group: root
-    mode: '0644'
-  when: not hetzner_pve_xshock_installed.stat.exists
+    mode: "0644"
+  when: hetzner_pve_xs_setup and not hetzner_pve_xshock_installed.stat.exists
 
 - name: PROXMOX post tasks - Run of XS post installer
   ansible.builtin.shell: /tmp/xs-install-post.sh
@@ -48,7 +48,7 @@
     chdir: /tmp
   register: hetzner_pve_xshock_run
   notify: Restart vmhost
-  when: not hetzner_pve_xshock_installed.stat.exists
+  when: hetzner_pve_xs_setup and not hetzner_pve_xshock_installed.stat.exists
 
 ### Remove cisofy repo - breaks "apt update"
 - name: PROXMOX post tasks - Remove cisofy repository
@@ -61,5 +61,13 @@
     src: sources.list.j2
     dest: /etc/apt/sources.list
     mode: 0644
+
+- name: PROXMOX post tasks - Copy ZFS apt preferences
+  ansible.builtin.copy:
+    src: 90_zfs
+    dest: /etc/apt/preferences.d/90_zfs
+    owner: root
+    group: root
+    mode: "0755"
 
 - meta: flush_handlers

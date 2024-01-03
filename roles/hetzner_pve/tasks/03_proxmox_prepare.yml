@@ -1,13 +1,13 @@
 ---
-- name: PROXMOX - Slow down the rebuild of RAID
-  ansible.posix.sysctl:
-    name: '{{ item.key }}'
-    value: '{{ item.value }}'
-    sysctl_set: true
-    state: present
-    reload: true
-    ignoreerrors: true
-  with_dict: '{{ sysctl_config }}'
+# - name: PROXMOX - Slow down the rebuild of RAID
+#   ansible.posix.sysctl:
+#     name: '{{ item.key }}'
+#     value: '{{ item.value }}'
+#     sysctl_set: true
+#     state: present
+#     reload: true
+#     ignoreerrors: true
+#   with_dict: '{{ sysctl_config }}'
 
 - name: PROXMOX - Add repository key
   ansible.builtin.get_url:
@@ -25,15 +25,25 @@
   apt: upgrade=dist force_apt_get=yes
   register: hetzner_pve_proxmox_package_upgrades
 
-- name: PROXMOX - Reboot required after package upgrades?
+# - name: PROXMOX - Reboot required after package upgrades?
+#   register: hetzner_pve_proxmox_package_upgrades_reboot
+#   stat: path=/var/run/reboot-required
+#   notify: Restart vmhost
+
+- name: Check if reboot required
+  stat:
+    path: /var/run/reboot-required
   register: hetzner_pve_proxmox_package_upgrades_reboot
-  stat: path=/var/run/reboot-required get_md5=no
+
+- name: Reboot if required
+  stat:
+    path: /var/run/reboot-required
   notify: Restart vmhost
+  when: hetzner_pve_proxmox_package_upgrades_reboot.stat.exists == true
 
-
-- name: Disable "externally-managed-environment" 
+- name: Disable "externally-managed-environment"
   ansible.builtin.file:
-    path: /usr/lib/python3.x/EXTERNALLY-MANAGED
+    path: /usr/lib/python3.11/EXTERNALLY-MANAGED
     state: absent
 
 - meta: flush_handlers

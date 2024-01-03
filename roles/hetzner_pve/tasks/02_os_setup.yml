@@ -1,6 +1,6 @@
 ---
 - name: OS - Start installimage
-  ansible.builtin.shell: '/root/.oldroot/nfs/install/installimage -a -c /tmp/setup.conf -u yes -x /tmp/post_install.sh'
+  ansible.builtin.shell: "/root/.oldroot/nfs/install/installimage -a -c /tmp/setup.conf -u yes -x /tmp/post_install.sh"
   notify: Restart vmhost
 
 - name: Flush handlers
@@ -21,5 +21,5 @@
     name: "root"
     state: present
     update_password: always
-    password: "{{ hetzner_pve_root_pass | password_hash('sha512') }}"
+    password: "{{ hetzner_pve_root_pass | string | password_hash('sha512') }}"
   no_log: true
