@@ -19,8 +19,8 @@
     zfs_pool_options:
       - "ashift=12"
     zfs_filesystems:
-      - backups
-      - isos
+      #- backups
+      #- isos
       - vm-drives
     zfs_pool_state: present
 
