@@ -2,69 +2,122 @@
   hosts: vmhost
   user: root
 
+  # Install single zpool
+  # Set up variable drive file systems within the pool
+
   # Source for installation instructions:
   #   https://openzfs.github.io/openzfs-docs/Getting%20Started/Debian/index.html#installation
 
-  # Install ZFS
+  # Get the drive info from the inventory file
   # Check if pool exists
   # Create pool
   # Check each file system exists
   # Somewhere proxmox needs to see each file system
   vars:
-    # zfs_pool_name: tank
+    zfs_pool_name: tank
+    zfs_pool_mode: mirror
+    zfs_pool_options:
+      - "ashift=12"
+    zfs_filesystems:
+      - backups
+      - isos
+      - vm-drives
+    zfs_pool_state: present
+
+    # To be used with proxmox to add info to /etc/pve/storage.cfg
+    pve_storages:
+      - name: iso
+        type: dir
+        path: /tank/iso
+        content: ["iso"]
+
     # # zfs_pool_mountpoint: /mnt/data
-    # zfs_pool_mode: mirror
-    # # Need to make host specific and get correct values
+    # FROM INVENTORY FILE
     # zfs_pool_devices:
-    #   - ata-INTEL_SSDSC2BW???
-    #   - ata-INTEL_SSDSC2BW???
-    # zfs_pool_state: present
-    # zfs_pool_options:
-    #   - "ashift=12"
-    #   - "compression=lz4"
+    # - nvme-SAMSUNG_MZQLB1T9HAJR-00007_S439NA0R202624
+    # - nvme-SAMSUNG_MZQLB1T9HAJR-00007_S439NC0R303794
 
-    tasks:
-      - name: PROXMOX post tasks - Copy ZFS apt preferences
-        ansible.builtin.copy:
-          src: roles/hetzner_pve/files/90_zfs
-          dest: /etc/apt/preferences.d/90_zfs
-          owner: root
-          group: root
-          mode: "0755"
+  tasks:
+    # Think not needed if reboot after proxmox install
 
-      - name: Install ZFS part 1
-        ansible.builtin.apt:
-          pkg:
-            - dpkg-dev
-            - linux-headers-generic
-            - linux-image-generic
+    # - name: Install ZFS part 1
+    #   ansible.builtin.apt:
+    #     pkg:
+    #       - dpkg-dev
+    #       # - linux-headers-generic
+    #       # - linux-image-generic
+    #     state: present
 
-      - name: Install ZFS part 2
-        ansible.builtin.apt:
-          pkg:
-            - zfs-dkms
-            - zfsutils-linux
+    # - name: Install ZFS part 2
+    #   ansible.builtin.apt:
+    #     pkg:
+    #       - zfs-dkms
+    #       - zfsutils-linux
+    #     state: present
 
-        # - name: check ZFS pool existance
-        #   command: zpool list -Ho name {{ zfs_pool_name }}
-        #   register: result_pool_list
-        #   ignore_errors: yes
-        #   changed_when: false
+    - name: check ZFS pool existance
+      command: zpool list -Ho name {{ zfs_pool_name }}
+      register: result_pool_list
+      ignore_errors: yes
+      changed_when: false
 
-        # - name: create ZFS pool
-        #   command: >-
-        #     zpool create
-        #     {{ '-o' if zfs_pool_options else '' }} {{ zfs_pool_options | join(' -o ') }}
-        #     {{ '-m ' + zfs_pool_mountpoint if zfs_pool_mountpoint else '' }}
-        #     {{ zfs_pool_name }}
-        #     {{ zfs_pool_mode if zfs_pool_mode else '' }}
-        #     {{ zfs_pool_devices | join(' ') }}
-        #   when:
-        #     - zfs_pool_state | default('present') == 'present'
-        #     - result_pool_list.rc == 1
+    - name: create ZFS pool
+      command: >-
+        zpool create
+        {{ '-o' if zfs_pool_options else '' }} {{ zfs_pool_options | join(' -o ') }}
+        {{ zfs_pool_name }}
+        {{ zfs_pool_mode if zfs_pool_mode else '' }}
+        {{ zfs_pool_devices | join(' ') }}
+      when:
+        - zfs_pool_state | default('present') == 'present'
+        - result_pool_list.rc == 1
 
-        # - name: destroy ZFS pool
-        #   command: zpool destroy {{ zfs_pool_name }}
-        #   when:
-        #     - zfs_pool_state | default('present') == 'absent'
-        #     - result_pool_list.rc == 0
+    - name: apply compression
+      command: >-
+        zfs set compress=lz4 tank
+      when:
+        - zfs_pool_state | default('present') == 'present'
+        - result_pool_list.rc == 1
+
+    - name: mount pool after reboot
+      command: >-
+        systemctl enable zfs-import@{{ zfs_pool_name }}.service
+      when:
+        - zfs_pool_state | default('present') == 'present'
+        - result_pool_list.rc == 1
+
+    - name: Gather space usage about all imported ZFS pools
+      community.general.zpool_facts: properties='free,size'
+
+    - name: Print gathered information
+      ansible.builtin.debug:
+        msg: "ZFS pool {{ item.name }} has {{ item.free }} free space out of {{ item.size }}."
+      with_items: "{{ ansible_zfs_pools }}"
+
+    - name: Create ZFS file systems
+      community.general.zfs:
+        name: "{{ zfs_pool_name }}/{{ item }}"
+        state: present
+      with_items: "{{ zfs_filesystems }}"
+      tags: storage
+
+    # - name: PROXMOX post tasks - Copy ZFS apt preferences
+    #   ansible.builtin.copy:
+    #     src: roles/hetzner_pve/files/90_zfs
+    #     dest: /etc/apt/preferences.d/90_zfs
+    #     owner: root
+    #     group: root
+    #     mode: "0755"
+
+    # - name: create datasets in pool
+    #   command: >-
+    #     zfs create -p {{ zfs_pool_name }}/{{item}}
+    #   loop: "{{ zfs_filesystems }}"
+    #   when:
+    #     - zfs_pool_state | default('present') == 'present'
+
+    # - name: destroy ZFS pool
+    #   command: zpool destroy {{ zfs_pool_name }}
+    #   when:
+    #     - zfs_pool_state | default('present') == 'absent'
+    #     - result_pool_list.rc == 0

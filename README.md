@@ -19,6 +19,8 @@ or which are the two matching this at the time of boot into rescue mode.
 
 
 Better seperate out
+
+
  - hetzner server install
  - server configuration - e.g. fail2ban, XS optimisations, data drives in zfs mirror etc.
  - proxmox install

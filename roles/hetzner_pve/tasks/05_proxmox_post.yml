@@ -69,5 +69,7 @@
     owner: root
     group: root
     mode: "0755"
+    notify: Restart vmhost
 
-- meta: flush_handlers
+- name: flush handers
+  meta: flush_handlers
