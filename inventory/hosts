@@ -9,5 +9,5 @@ ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/
 prox02.84lmr.com ansible_host=135.181.140.236 ENV_INVENTORY_SRV_NO=2227394
 
 [vmhost:vars]
-hetzner_pve_drive_paths=["/dev/nvme1n1","/dev/nvme2n1"]
+hetzner_pve_drive_paths=["/dev/nvme0n1","/dev/nvme2n1"]
 zfs_pool_devices=["nvme-SAMSUNG_MZQLB1T9HAJR-00007_S439NA0R202624", "nvme-SAMSUNG_MZQLB1T9HAJR-00007_S439NC0R303794"]
