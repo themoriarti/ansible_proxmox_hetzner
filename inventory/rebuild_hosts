@@ -2,7 +2,7 @@
 
 [all:vars]
 # needed, otherwise Hetzner server freezes during long processes
-ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=30 -o ControlMaster=auto -o ControlPersist=60s"
+ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=90 -o ControlMaster=auto -o ControlPersist=120s"
 
 [vmhost]
 prox02.84lmr.com ansible_host=135.181.140.236 ENV_INVENTORY_SRV_NO=2227394

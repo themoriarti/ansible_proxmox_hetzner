@@ -1,18 +1,5 @@
 #!/bin/bash
 
-: <<'end_header_info'
-(c) Andrey Prokopenko job@terem.fr
-fully automatic script to install Debian 11 with ZFS root on Hetzner VPS
-WARNING: all data on the disk will be destroyed
-How to use: add SSH key to the rescue console, set it OS to linux64, then press "mount rescue and power cycle" button
-Next, connect via SSH to console, and run the script
-Answer script questions about desired hostname, ZFS ARC cache size et cetera
-To cope with network failures its higly recommended to run the script inside screen console
-screen -dmS zfs
-screen -r zfs
-To detach from screen console, hit Ctrl-d then a
-end_header_info
-
 set -o errexit
 set -o pipefail
 set -o nounset
@@ -21,25 +8,26 @@ export TMPDIR=/tmp
 
 # Variables
 v_bpool_name=bpool
-v_bpool_tweaks=
+v_bpool_tweaks="-o ashift=12 -O compression=lz4"
 v_rpool_name=rpool
-v_rpool_tweaks=
-declare -a v_selected_disks
-v_swap_size=32                # integer
+v_rpool_tweaks="-o ashift=12 -O acltype=posixacl -O compression=lz4 -O dnodesize=auto -O relatime=on -O xattr=sa -O normalization=formD"
+v_swap_size=32               # integer
 v_free_tail_space=0          # integer
 v_hostname=prox02.84lmr.com
 v_kernel_variant=
 v_zfs_arc_max_mb=64
-v_root_password=
+v_root_password=a3qmon
 v_encrypt_rpool=0             # 0=false, 1=true
 v_passphrase=
 v_zfs_experimental=0
 v_suitable_disks=()
+v_selected_disks=("/dev/disk/by-id/nvme-SAMSUNG_MZQLB960HAJR-00007_S437NA0N701606" "/dev/disk/by-id/nvme-SAMSUNG_MZQLB960HAJR-00007_S437NA0N701616")
+v_pools_mirror_option=mirror
+
 
 # Constants
-c_deb_packages_repo=https://deb.debian.org/debian
-c_deb_security_repo=https://deb.debian.org/debian-security
-
+c_deb_packages_repo=https://mirror.hetzner.com/debian/packages
+c_deb_security_repo=https://mirror.hetzner.com/debian/security
 c_default_zfs_arc_max_mb=64
 c_default_bpool_tweaks="-o ashift=12 -O compression=lz4"
 c_default_rpool_tweaks="-o ashift=12 -O acltype=posixacl -O compression=lz4 -O dnodesize=auto -O relatime=on -O xattr=sa -O normalization=formD"
@@ -50,80 +38,12 @@ c_install_log=$c_log_dir/install.log
 c_lsb_release_log=$c_log_dir/lsb_release.log
 c_disks_log=$c_log_dir/disks.log
 
-function activate_debug {
-  mkdir -p "$c_log_dir"
-
-  exec 5> "$c_install_log"
-  BASH_XTRACEFD="5"
-  set -x
-}
-
-# shellcheck disable=SC2120
-function print_step_info_header {
-  echo -n "
-###############################################################################
-# ${FUNCNAME[1]}"
-
-  if [[ "${1:-}" != "" ]]; then
-    echo -n " $1" 
-  fi
-
-
-  echo "
-###############################################################################
-"
-}
-
-function print_variables {
-  for variable_name in "$@"; do
-    declare -n variable_reference="$variable_name"
-
-    echo -n "$variable_name:"
-
-    case "$(declare -p "$variable_name")" in
-    "declare -a"* )
-      for entry in "${variable_reference[@]}"; do
-        echo -n " \"$entry\""
-      done
-      ;;
-    "declare -A"* )
-      for key in "${!variable_reference[@]}"; do
-        echo -n " $key=\"${variable_reference[$key]}\""
-      done
-      ;;
-    * )
-      echo -n " $variable_reference"
-      ;;
-    esac
-
-    echo
-  done
-
-  echo
-}
-
-function display_intro_banner {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
-  local dialog_message='Hello!
-This script will prepare the ZFS pools, then install and configure minimal Debian 11 with ZFS root on Hetzner hosting VPS instance
-The script with minimal changes may be used on any other hosting provider  supporting KVM virtualization and offering Debian-based rescue system.
-In order to stop the procedure, hit Esc twice during dialogs (excluding yes/no ones), or Ctrl+C while any operation is running.
-'
-  dialog --msgbox "$dialog_message" 30 100
-}
 
 function store_os_distro_information {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
   lsb_release --all > "$c_lsb_release_log"
 }
 
 function check_prerequisites {
-  # shellcheck disable=SC2119
-  print_step_info_header
   if [[ $(id -u) -ne 0 ]]; then
     echo 'This script must be run with administrative privileges!'
     exit 1
@@ -173,226 +93,6 @@ function initial_load_debian_zed_cache {
   sed -Ei "s|/$c_zfs_mount_dir/?|/|g" "$c_zfs_mount_dir/etc/zfs/zfs-list.cache/$v_rpool_name"
 }
 
-function find_suitable_disks {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
-  udevadm trigger
-
-  # shellcheck disable=SC2012
-  ls -l /dev/disk/by-id | tail -n +2 | perl -lane 'print "@F[8..10]"' > "$c_disks_log"
-
-  local candidate_disk_ids
-  local mounted_devices
-
-  candidate_disk_ids=$(find /dev/disk/by-id -regextype awk -regex '.+/(ata|nvme|scsi)-.+' -not -regex '.+-part[0-9]+$' | sort)
-  mounted_devices="$(df | awk 'BEGIN {getline} {print $1}' | xargs -n 1 lsblk -no pkname 2> /dev/null | sort -u || true)"
-
-  while read -r disk_id || [[ -n "$disk_id" ]]; do
-    local device_info
-
-    device_info="$(udevadm info --query=property "$(readlink -f "$disk_id")")"
-    block_device_basename="$(basename "$(readlink -f "$disk_id")")"
-
-    if ! grep -q '^ID_TYPE=cd$' <<< "$device_info"; then
-      if ! grep -q "^$block_device_basename\$" <<< "$mounted_devices"; then
-        v_suitable_disks+=("$disk_id")
-      fi
-    fi
-
-    cat >> "$c_disks_log" << LOG
-
-## DEVICE: $disk_id ################################
-
-$(udevadm info --query=property "$(readlink -f "$disk_id")")
-
-LOG
-
-  done < <(echo -n "$candidate_disk_ids")
-
-  if [[ ${#v_suitable_disks[@]} -eq 0 ]]; then
-    local dialog_message='No suitable disks have been found!
-
-If you think this is a bug, please open an issue on https://github.com/terem42/zfs-hetzner-vm/issues, and attach the file `'"$c_disks_log"'`.
-'
-    dialog --msgbox "$dialog_message" 30 100
-
-    exit 1
-  fi
-
-  print_variables v_suitable_disks
-}
-
-function select_disks {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
-  while true; do
-    local menu_entries_option=()
-
-    if [[ ${#v_suitable_disks[@]} -eq 1 ]]; then
-      local disk_selection_status=ON
-    else
-      local disk_selection_status=OFF
-    fi
-
-    for disk_id in "${v_suitable_disks[@]}"; do
-      menu_entries_option+=("$disk_id" "($block_device_basename)" "$disk_selection_status")
-    done
-
-    local dialog_message="Select the ZFS devices (multiple selections can be in mirror or strip).
-
-Devices with mounted partitions, cdroms, and removable devices are not displayed!
-"
-    mapfile -t v_selected_disks < <(dialog --separate-output --checklist "$dialog_message" 30 100 $((${#menu_entries_option[@]} / 3)) "${menu_entries_option[@]}" 3>&1 1>&2 2>&3)
-
-    if [[ ${#v_selected_disks[@]} -gt 0 ]]; then
-      break
-    fi
-  done
-
-  print_variables v_selected_disks
-}
-
-function ask_swap_size {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
-  local swap_size_invalid_message=
-
-  while [[ ! $v_swap_size =~ ^[0-9]+$ ]]; do
-    v_swap_size=$(dialog --inputbox "${swap_size_invalid_message}Enter the swap size in GiB (0 for no swap):" 30 100 2 3>&1 1>&2 2>&3)
-
-    swap_size_invalid_message="Invalid swap size! "
-  done
-
-  print_variables v_swap_size
-}
-
-function ask_free_tail_space {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
-  local tail_space_invalid_message=
-
-  while [[ ! $v_free_tail_space =~ ^[0-9]+$ ]]; do
-    v_free_tail_space=$(dialog --inputbox "${tail_space_invalid_message}Enter the space to leave at the end of each disk (0 for none):" 30 100 0 3>&1 1>&2 2>&3)
-
-    tail_space_invalid_message="Invalid size! "
-  done
-
-  print_variables v_free_tail_space
-}
-
-function ask_zfs_arc_max_size {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
-  local zfs_arc_max_invalid_message=
-
-  while [[ ! $v_zfs_arc_max_mb =~ ^[0-9]+$ ]]; do
-    v_zfs_arc_max_mb=$(dialog --inputbox "${zfs_arc_max_invalid_message}Enter ZFS ARC cache max size in Mb (minimum 64Mb, enter 0 for ZFS default value, the default will take up to 50% of memory):" 30 100 "$c_default_zfs_arc_max_mb" 3>&1 1>&2 2>&3)
-
-    zfs_arc_max_invalid_message="Invalid size! "
-  done
-
-  print_variables v_zfs_arc_max_mb
-}
-
-
-function ask_pool_names {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
-  local bpool_name_invalid_message=
-
-  while [[ ! $v_bpool_name =~ ^[a-z][a-zA-Z_:.-]+$ ]]; do
-    v_bpool_name=$(dialog --inputbox "${bpool_name_invalid_message}Insert the name for the boot pool" 30 100 bpool 3>&1 1>&2 2>&3)
-
-    bpool_name_invalid_message="Invalid pool name! "
-  done
-  local rpool_name_invalid_message=
-
-  while [[ ! $v_rpool_name =~ ^[a-z][a-zA-Z_:.-]+$ ]]; do
-    v_rpool_name=$(dialog --inputbox "${rpool_name_invalid_message}Insert the name for the root pool" 30 100 rpool 3>&1 1>&2 2>&3)
-
-    rpool_name_invalid_message="Invalid pool name! "
-  done
-
-  print_variables v_bpool_name v_rpool_name
-}
-
-function ask_pool_tweaks {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
-  v_bpool_tweaks=$(dialog --inputbox "Insert the tweaks for the boot pool" 30 100 -- "$c_default_bpool_tweaks" 3>&1 1>&2 2>&3)
-  v_rpool_tweaks=$(dialog --inputbox "Insert the tweaks for the root pool" 30 100 -- "$c_default_rpool_tweaks" 3>&1 1>&2 2>&3)
-
-  print_variables v_bpool_tweaks v_rpool_tweaks
-}
-
-
-function ask_root_password {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
-  set +x
-  local password_invalid_message=
-  local password_repeat=-
-
-  while [[ "$v_root_password" != "$password_repeat" || "$v_root_password" == "" ]]; do
-    v_root_password=$(dialog --passwordbox "${password_invalid_message}Please enter the root account password (can't be empty):" 30 100 3>&1 1>&2 2>&3)
-    password_repeat=$(dialog --passwordbox "Please repeat the password:" 30 100 3>&1 1>&2 2>&3)
-
-    password_invalid_message="Passphrase empty, or not matching! "
-  done
-  set -x
-}
-
-function ask_encryption {
-  print_step_info_header
-
-  if dialog --defaultno --yesno 'Do you want to encrypt the root pool?' 30 100; then
-    v_encrypt_rpool=1
-  fi
-  set +x
-  if [[ $v_encrypt_rpool == "1" ]]; then
-    local passphrase_invalid_message=
-    local passphrase_repeat=-
-    while [[ "$v_passphrase" != "$passphrase_repeat" || ${#v_passphrase} -lt 8 ]]; do
-      v_passphrase=$(dialog --passwordbox "${passphrase_invalid_message}Please enter the passphrase for the root pool (8 chars min.):" 30 100 3>&1 1>&2 2>&3)
-      passphrase_repeat=$(dialog --passwordbox "Please repeat the passphrase:" 30 100 3>&1 1>&2 2>&3)
-
-      passphrase_invalid_message="Passphrase too short, or not matching! "
-    done
-  fi
-  set -x
-}
-
-function ask_zfs_experimental {
-  print_step_info_header
-
-  if dialog --defaultno --yesno 'Do you want to use experimental zfs module build?' 30 100; then
-    v_zfs_experimental=1
-  fi
-}
-
-function ask_hostname {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
-  local hostname_invalid_message=
-
-  while [[ ! $v_hostname =~ ^[a-z][a-zA-Z0-9_:.-]+$ ]]; do
-    v_hostname=$(dialog --inputbox "${hostname_invalid_message}Set the host name" 30 100 "$c_default_hostname" 3>&1 1>&2 2>&3)
-
-    hostname_invalid_message="Invalid host name! "
-  done
-
-  print_variables v_hostname
-}
-
 function determine_kernel_variant {
   if dmidecode | grep -q vServer; then
     v_kernel_variant="-cloud"
@@ -404,9 +104,7 @@ function chroot_execute {
 }
 
 function unmount_and_export_fs {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
+  
   for virtual_fs_dir in dev sys proc; do
     umount --recursive --force --lazy "$c_zfs_mount_dir/$virtual_fs_dir"
   done
@@ -458,56 +156,23 @@ export NCURSES_NO_UTF8_ACS=1
 
 check_prerequisites
 
-activate_debug
+#activate_debug
 
-display_intro_banner
+#display_intro_banner
 
-find_suitable_disks
+#find_suitable_disks
 
-select_disks
-
-ask_swap_size
-
-ask_free_tail_space
-
-ask_pool_names
-
-ask_pool_tweaks
-
-ask_encryption
-
-ask_zfs_arc_max_size
-
-ask_zfs_experimental
-
-ask_root_password
-
-ask_hostname
+#select_disks
 
 determine_kernel_variant
 
 clear
 
 echo "===========remove unused kernels in rescue system========="
-#for kver in $(find /lib/modules/* -maxdepth 0 -type d | grep -v "$(uname -r)" | cut -s -d "/" -f 4); do
-#  apt purge --yes "linux-headers-$kver"
-#  apt purge --yes "linux-image-$kver"
-#done
+
 
 echo "======= installing zfs on rescue system =========="
 
-#  echo "zfs-dkms zfs-dkms/note-incompatible-licenses note true" | debconf-set-selections  
-#  echo "y" | zfs
-# linux-headers-generic linux-image-generic
-#  apt install --yes software-properties-common dpkg-dev dkms
-#  rm -f "$(which zfs)"
-#  rm -f "$(which zpool)"
-#  echo -e "deb http://deb.debian.org/debian/ testing main contrib non-free\ndeb http://deb.debian.org/debian/ testing main contrib non-free\n" >/etc/apt/sources.list.d/bookworm-testing.list
-#  echo -e "Package: src:zfs-linux\nPin: release n=testing\nPin-Priority: 990\n" > /etc/apt/preferences.d/90_zfs
-#  apt update  
-#  apt install -t testing --yes zfs-dkms zfsutils-linux
-#  rm /etc/apt/sources.list.d/bookworm-testing.list
-#  rm /etc/apt/preferences.d/90_zfs
   apt update
   export PATH=$PATH:/usr/sbin
   zfs --version
@@ -535,23 +200,13 @@ echo "======= create zfs pools and datasets =========="
   rpool_disks_partitions=()
   bpool_disks_partitions=()
 
-  if [[ $v_encrypt_rpool == "1" ]]; then
-    encryption_options=(-O "encryption=aes-256-gcm" -O "keylocation=prompt" -O "keyformat=passphrase")
-  fi
-
   for selected_disk in "${v_selected_disks[@]}"; do
     rpool_disks_partitions+=("${selected_disk}-part3")
     bpool_disks_partitions+=("${selected_disk}-part2")
   done
 
-  pools_mirror_option=
-  if [[ ${#v_selected_disks[@]} -gt 1 ]]; then
-    if dialog --defaultno --yesno "Do you want to use mirror mode for ${v_selected_disks[*]}?" 30 100; then 
-      pools_mirror_option=mirror
-    fi
-  fi
+  pools_mirror_option=mirror
 
-# shellcheck disable=SC2086
 zpool create \
   $v_bpool_tweaks -O canmount=off -O devices=off \
   -o compatibility=grub2 \
@@ -561,15 +216,14 @@ zpool create \
   -O acltype=posixacl -O xattr=sa \
   -o cachefile=/etc/zpool.cache \
   -O mountpoint=/boot -R $c_zfs_mount_dir -f \
-  $v_bpool_name $pools_mirror_option "${bpool_disks_partitions[@]}"
+  $v_bpool_name $v_pools_mirror_option "${bpool_disks_partitions[@]}"
 
-# shellcheck disable=SC2086
 echo -n "$v_passphrase" | zpool create \
   $v_rpool_tweaks \
   -o cachefile=/etc/zpool.cache \
   "${encryption_options[@]}" \
   -O mountpoint=/ -R $c_zfs_mount_dir -f \
-  $v_rpool_name $pools_mirror_option "${rpool_disks_partitions[@]}"
+  $v_rpool_name $v_pools_mirror_option "${rpool_disks_partitions[@]}"
 
 zfs create -o canmount=off -o mountpoint=none "$v_rpool_name/ROOT"
 zfs create -o canmount=off -o mountpoint=none "$v_bpool_name/BOOT"
@@ -585,16 +239,12 @@ zfs create                                 "$v_rpool_name/home"
 zfs create -o canmount=off                 "$v_rpool_name/var"
 zfs create                                 "$v_rpool_name/var/log"
 zfs create                                 "$v_rpool_name/var/spool"
-
 zfs create -o com.sun:auto-snapshot=false  "$v_rpool_name/var/cache"
 zfs create -o com.sun:auto-snapshot=false  "$v_rpool_name/var/tmp"
 chmod 1777 "$c_zfs_mount_dir/var/tmp"
-
 zfs create                                 "$v_rpool_name/srv"
-
 zfs create -o canmount=off                 "$v_rpool_name/usr"
 zfs create                                 "$v_rpool_name/usr/local"
-
 zfs create                                 "$v_rpool_name/var/mail"
 
 zfs create -o com.sun:auto-snapshot=false -o canmount=on -o mountpoint=/tmp "$v_rpool_name/tmp"
@@ -722,14 +372,7 @@ chroot_execute "apt install --yes man wget curl software-properties-common nano 
 echo "======= installing zfs packages =========="
 chroot_execute 'echo "zfs-dkms zfs-dkms/note-incompatible-licenses note true" | debconf-set-selections'
 
-if [[ $v_zfs_experimental == "1" ]]; then
-  chroot_execute "wget -O - https://terem42.github.io/zfs-debian/apt_pub.gpg | apt-key add -"
-  chroot_execute "add-apt-repository 'deb https://terem42.github.io/zfs-debian/public zfs-debian-experimental main'"
-  chroot_execute "apt update"
-  chroot_execute "apt install -t zfs-debian-experimental --yes zfs-initramfs zfs-dkms zfsutils-linux"
-else
-  chroot_execute "apt install -t bookworm-backports --yes zfs-initramfs zfs-dkms zfsutils-linux"
-fi
+chroot_execute "apt install -t bookworm-backports --yes zfs-initramfs zfs-dkms zfsutils-linux"
 chroot_execute 'cat << DKMS > /etc/dkms/zfs.conf
 # override for /usr/src/zfs-*/dkms.conf:
 # always rebuild initrd when zfs module has been changed
@@ -750,7 +393,6 @@ echo "======= set root password =========="
 chroot_execute "echo root:$(printf "%q" "$v_root_password") | chpasswd"
 
 echo "======= setting up zfs cache =========="
-
 cp /etc/zpool.cache "$c_zfs_mount_dir/etc/zfs/zpool.cache"
 
 echo "========setting up zfs module parameters========"
@@ -775,28 +417,6 @@ chroot_execute "echo 'GRUB_DISABLE_OS_PROBER=true'   >> /etc/default/grub"
 for ((i = 1; i < ${#v_selected_disks[@]}; i++)); do
   dd if="${v_selected_disks[0]}-part1" of="${v_selected_disks[i]}-part1"
 done
-
-if [[ $v_encrypt_rpool == "1" ]]; then
-  echo "=========set up dropbear=============="
-
-  chroot_execute "apt install --yes dropbear-initramfs"
-  
-  mkdir -p "$c_zfs_mount_dir/etc/dropbear/initramfs"
-  cp /root/.ssh/authorized_keys "$c_zfs_mount_dir/etc/dropbear/initramfs/authorized_keys"
-
-  cp "$c_zfs_mount_dir/etc/ssh/ssh_host_rsa_key" "$c_zfs_mount_dir/etc/ssh/ssh_host_rsa_key_temp"
-  chroot_execute "ssh-keygen -p -i -m pem -N '' -f /etc/ssh/ssh_host_rsa_key_temp"
-  chroot_execute "/usr/lib/dropbear/dropbearconvert openssh dropbear /etc/ssh/ssh_host_rsa_key_temp /etc/dropbear/initramfs/dropbear_rsa_host_key"
-  rm -rf "$c_zfs_mount_dir/etc/ssh/ssh_host_rsa_key_temp"
-
-  cp "$c_zfs_mount_dir/etc/ssh/ssh_host_ecdsa_key" "$c_zfs_mount_dir/etc/ssh/ssh_host_ecdsa_key_temp"
-  chroot_execute "ssh-keygen -p -i -m pem -N '' -f /etc/ssh/ssh_host_ecdsa_key_temp"
-  chroot_execute "/usr/lib/dropbear/dropbearconvert openssh dropbear /etc/ssh/ssh_host_ecdsa_key_temp /etc/dropbear/initramfs/dropbear_ecdsa_host_key"
-  chroot_execute "rm -rf /etc/ssh/ssh_host_ecdsa_key_temp"
-  rm -rf "$c_zfs_mount_dir/etc/ssh/ssh_host_ecdsa_key_temp"
-
-  rm -rf "$c_zfs_mount_dir/etc/dropbear/initramfs/dropbear_dss_host_key"
-fi
 
 echo "============setup root prompt============"
 cat > "$c_zfs_mount_dir/root/.bashrc" <<CONF
