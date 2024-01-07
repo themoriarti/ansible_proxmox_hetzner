@@ -1,0 +1,6 @@
+{
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": "file:///Users/russ/ansible/qnap.yml"
+  },
+  "ansible.python.interpreterPath": "/opt/homebrew/bin/python3.12"
+}

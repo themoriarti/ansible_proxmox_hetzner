@@ -1,12 +1,1 @@
-ansible.cfg
-roles/hetzner_pve/vars
-**/*.out
-**/*.k
-**/*.log
-**/*.swp
-
-**/*.local
-inventory/hosts
-
-group_vars/vars.yml
-inventory/hosts
+.vault-pass

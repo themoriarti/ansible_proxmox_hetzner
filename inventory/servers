@@ -1,0 +1,19 @@
+[linode]
+poip.co.uk
+
+[qnap]
+nas1288x.localdomain    ansible_become_pass='{{ nas1288x_become_pass }}'
+nas1282.norfolk         ansible_become_pass='{{ nas1282_become_pass }}'
+
+[hetzner]
+prox  ansible_host=95.216.6.71     ansible_user=russ    ansible_become_pass='{{ prox_become_pass}}'
+prox02 ansible_host=138.201.194.99  ansible_user=root
+
+[linode:vars]
+ansible_user=forge
+
+[qnap:vars]
+ansible_python_interpreter="/opt/bin/python3"
+ansible_user=russ
+ansible_become_user=admin
+ansible_become_method=sudo

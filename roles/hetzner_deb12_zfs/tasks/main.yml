@@ -1,0 +1,7 @@
+---
+- ansible.builtin.include_tasks: 00_hetzner_force_to_rescue_mode.yml
+  # when: hetzner_pve_autorescue
+
+- ansible.builtin.include_tasks: 01_rescue_prepare_server.yml
+
+- ansible.builtin.include_tasks: 02_rescue_compile_zfs.yml

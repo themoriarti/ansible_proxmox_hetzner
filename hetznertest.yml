@@ -1,0 +1,15 @@
+- hosts: hetzner
+  become: true
+  gather_facts: yes
+  vars_files:
+    - ./group_vars/vars.yml
+
+  tasks:
+    - debug:
+        msg:
+          - "OS:      {{ansible_facts['distribution']}}"
+          - "Release: {{ansible_facts['distribution_release']}}"
+          - "Version: {{ansible_facts['distribution_version']}}"
+          - "Mem:     {{ansible_facts['memtotal_mb']}}"
+          - "Cores:   {{ansible_facts['processor_cores']}}"
+          - "IP4:     {{ansible_facts['all_ipv4_addresses']}}"

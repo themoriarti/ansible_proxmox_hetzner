@@ -1,13 +1,14 @@
-- hosts: vmhost
+- name: temporary test play
+  hosts: vmhost
   user: root
-  gather_facts: no
+  gather_facts: true
   vars_files:
     - ./roles/hetzner_pve/defaults/main.yml
     - ./roles/hetzner_pve/vars/main.yml
 
   tasks:
     - name: Reboot host and wait for it to restart
-      reboot:
+      ansible.builtin.reboot:
         msg: "Reboot initiated by Ansible"
         connect_timeout: 5
         reboot_timeout: 600

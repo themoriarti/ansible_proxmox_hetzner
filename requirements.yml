@@ -2,10 +2,6 @@
 # http://docs.ansible.com/galaxy.html#installing-multiple-roles-from-a-file
 # Install with: `ansible-galaxy install -r requirements.yml`
 
-roles:
-  # Install a role from Ansible Galaxy.
-  - name: arillso.motd
-
 collections:
-  # Install a collection from Ansible Galaxy.
   - name: community.hrobot
+  - name: linode.cloud

@@ -1,0 +1,44 @@
+- hosts: linode
+  become: true
+  gather_facts: no
+  vars_files:
+    - ./group_vars/vars.yml
+  # vars:
+  #   ansible_become_pass: "{{ forge_pass }}"
+
+  tasks:
+    #- name: Print all available facts
+    #  ansible.builtin.debug:
+    #    var: ansible_facts
+
+    # - name: Show how logged in
+    #   command: whoami
+    #   register: userdetails
+
+    # - debug:
+    #     var: userdetails
+
+    - name: Update apt repo and cache
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      apt:
+        force_apt_get: yes
+        upgrade: dist
+
+    - name: Check if a reboot is required
+      stat:
+        path: /var/run/reboot-required
+        get_md5: no
+      register: reboot_required_file
+
+    - name: Reboot the server (if required).
+      reboot:
+      when: reboot_required_file.stat.exists == true
+
+    - name: Remove dependencies that are no longer required.
+      apt:
+        autoremove: yes

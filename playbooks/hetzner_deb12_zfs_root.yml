@@ -1,0 +1,8 @@
+---
+- name: "Wipe and set up minimal Debian 12 bookworm on Hetzer server with ZFS filesystem"
+  hosts: vmhost
+  user: root
+  gather_facts: false
+
+  roles:
+    - role: "~/ansible/roles/hetzner_deb12_zfs"

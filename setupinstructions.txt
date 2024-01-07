@@ -1,0 +1,10 @@
+https://www.linode.com/docs/guides/deploy-linodes-using-linode-ansible-collection/
+pip install -r /Users/russ/.ansible/collections/ansible_collections/linode/cloud/requirements.txt
+
+
+
+QNAP notes
+
+Install python3
+sudo opkg update
+sudo opkg install python3

@@ -1,0 +1,25 @@
+# defaults file
+---
+### Hetzner API - https://robot.hetzner.com/preferences/index
+hetzner_api_user: secret
+hetzner_api_pass: secret
+hetzner_api_ssh_keys: []
+
+### General Setup settings
+
+# RAID level to use
+hetzner_pve_swraid: 1
+hetzner_pve_drive_paths:
+  - "/dev/sdb"
+  - "/dev/sdc"
+
+hetzner_pve_custom_packages:
+  - nano
+  - screen
+  - htop
+  - iotop
+  - jnettop
+  - tcpdump
+  - zsh
+  - git
+  - zfsutils-linux

@@ -1,0 +1,15 @@
+# tasks file
+---
+# TODO: May need to wipe disks?
+# wipefs -af /${DEVICE}
+# dd if=/dev/zero of=${DEVICE} bs=1M count=10
+
+# Apt update and upgrade
+#
+- name: RESCUE - Update and upgrade apt packages
+  become: true
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
+
