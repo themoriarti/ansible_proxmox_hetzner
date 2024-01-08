@@ -39,15 +39,10 @@ c_disks_log=$c_log_dir/disks.log
 # Functions
 
 function store_os_distro_information {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
   lsb_release --all > "$c_lsb_release_log"
 }
 
 function check_prerequisites {
-  # shellcheck disable=SC2119
-  print_step_info_header
   if [[ $(id -u) -ne 0 ]]; then
     echo 'This script must be run with administrative privileges!'
     exit 1
@@ -108,9 +103,6 @@ function chroot_execute {
 }
 
 function unmount_and_export_fs {
-  # shellcheck disable=SC2119
-  print_step_info_header
-
   for virtual_fs_dir in dev sys proc; do
     umount --recursive --force --lazy "$c_zfs_mount_dir/$virtual_fs_dir"
   done

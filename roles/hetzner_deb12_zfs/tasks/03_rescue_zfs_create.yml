@@ -42,7 +42,7 @@
   args:
     chdir: /tmp
 
-- name: RESCUE - Run debian 12 system and locale script
+- name: RESCUE - Run debian 12 kernel apps and finish script
   ansible.builtin.shell: /tmp/03-deb12bootzfs-kernel-apps-finish.sh
   args:
     chdir: /tmp
