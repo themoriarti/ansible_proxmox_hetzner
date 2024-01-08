@@ -15,8 +15,14 @@ export NCURSES_NO_UTF8_ACS=1
 
 
 
-echo "======= installing OpenSSH and network tooling =========="
-chroot_execute "apt install --yes openssh-server net-tools"
+echo "======= installing OpenSSH, network tooling and resolvconf =========="
+chroot_execute "apt install --yes openssh-server net-tools resolvconf"
+
+echo "======= configuring nameservers =========="
+cat > "$c_zfs_mount_dir/etc/resolvconf/resolv.conf.d/head" <<'CONF'
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+CONF
 
 echo "======= setup OpenSSH  =========="
 sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' "$c_zfs_mount_dir/etc/ssh/sshd_config"

@@ -7,3 +7,5 @@
 - ansible.builtin.include_tasks: 02_rescue_compile_zfs.yml
 
 - ansible.builtin.include_tasks: 03_rescue_zfs_create.yml
+
+- ansible.builtin.include_tasks: 05_reboot.yml
