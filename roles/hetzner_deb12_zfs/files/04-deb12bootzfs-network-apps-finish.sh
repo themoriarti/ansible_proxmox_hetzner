@@ -13,23 +13,7 @@ source config.sh
 export LC_ALL=en_US.UTF-8
 export NCURSES_NO_UTF8_ACS=1
 
-echo "======= installing latest kernel============="
-# linux-headers-generic linux-image-generic
-chroot_execute "apt install --yes linux-image${v_kernel_variant}-amd64 linux-headers${v_kernel_variant}-amd64 dpkg-dev"
 
-echo "======= installing aux packages =========="
-chroot_execute "apt install --yes man wget curl software-properties-common nano htop gnupg"
-
-echo "======= installing zfs packages =========="
-chroot_execute 'echo "zfs-dkms zfs-dkms/note-incompatible-licenses note true" | debconf-set-selections'
-
-chroot_execute "apt install -t bookworm-backports --yes zfs-initramfs zfs-dkms zfsutils-linux"
-chroot_execute 'cat << DKMS > /etc/dkms/zfs.conf
-# override for /usr/src/zfs-*/dkms.conf:
-# always rebuild initrd when zfs module has been changed
-# (either by a ZFS update or a new kernel version)
-REMAKE_INITRD="yes"
-DKMS'
 
 echo "======= installing OpenSSH and network tooling =========="
 chroot_execute "apt install --yes openssh-server net-tools"
@@ -40,14 +24,20 @@ sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/g' "$c_zfs_mount_di
 chroot_execute "rm /etc/ssh/ssh_host_*"
 chroot_execute "dpkg-reconfigure openssh-server -f noninteractive"
 
+echo "========= add root pubkey for login via SSH"
+mkdir -p "$c_zfs_mount_dir/root/.ssh/"
+cp /root/.ssh/authorized_keys "$c_zfs_mount_dir/root/.ssh/authorized_keys"
+
 echo "======= set root password =========="
 chroot_execute "echo root:$(printf "%q" "$v_root_password") | chpasswd"
 
-echo "======= setting up zfs cache =========="
-cp /etc/zpool.cache "$c_zfs_mount_dir/etc/zfs/zpool.cache"
-
-echo "========setting up zfs module parameters========"
-chroot_execute "echo options zfs zfs_arc_max=$((v_zfs_arc_max_mb * 1024 * 1024)) >> /etc/modprobe.d/zfs.conf"
+echo "============setup root prompt============"
+cat > "$c_zfs_mount_dir/root/.bashrc" <<CONF
+export PS1='\[\033[01;31m\]\u\[\033[01;33m\]@\[\033[01;32m\]\h \[\033[01;33m\]\w \[\033[01;35m\]\$ \[\033[00m\]'
+umask 022
+export LS_OPTIONS='--color=auto -h'
+eval "\$(dircolors)"
+CONF
 
 echo "======= setting up grub =========="
 chroot_execute "echo 'grub-pc grub-pc/install_devices_empty   boolean true' | debconf-set-selections"
@@ -68,18 +58,6 @@ chroot_execute "echo 'GRUB_DISABLE_OS_PROBER=true'   >> /etc/default/grub"
 for ((i = 1; i < ${#v_selected_disks[@]}; i++)); do
   dd if="${v_selected_disks[0]}-part1" of="${v_selected_disks[i]}-part1"
 done
-
-echo "============setup root prompt============"
-cat > "$c_zfs_mount_dir/root/.bashrc" <<CONF
-export PS1='\[\033[01;31m\]\u\[\033[01;33m\]@\[\033[01;32m\]\h \[\033[01;33m\]\w \[\033[01;35m\]\$ \[\033[00m\]'
-umask 022
-export LS_OPTIONS='--color=auto -h'
-eval "\$(dircolors)"
-CONF
-
-echo "========= add root pubkey for login via SSH"
-mkdir -p "$c_zfs_mount_dir/root/.ssh/"
-cp /root/.ssh/authorized_keys "$c_zfs_mount_dir/root/.ssh/authorized_keys"
 
 echo "========running packages upgrade and autoremove==========="
 chroot_execute "apt upgrade --yes"
@@ -123,12 +101,10 @@ chroot_execute "apt remove cryptsetup* --yes"
 echo "======= update grub =========="
 chroot_execute "update-grub"
 
+chroot_execute "echo RESUME=none > /etc/initramfs-tools/conf.d/resume"
+
 echo "======= setting up zed =========="
-if [[ $v_zfs_experimental == "1" ]]; then
-  chroot_execute "zfs set canmount=noauto $v_rpool_name"
-else
-  initial_load_debian_zed_cache
-fi
+initial_load_debian_zed_cache
 
 echo "======= setting mountpoints =========="
 chroot_execute "zfs set mountpoint=legacy $v_bpool_name/BOOT/debian"
@@ -153,5 +129,3 @@ chroot_execute "echo RESUME=none > /etc/initramfs-tools/conf.d/resume"
 echo "======= unmounting filesystems and zfs pools =========="
 unmount_and_export_fs
 
-echo "======== setup complete, rebooting ==============="
-reboot
