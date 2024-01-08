@@ -16,7 +16,6 @@
     group: root
     mode: "0755"
   loop:
-    - config.sh
     - 01-deb12bootzfs-disk-prep.sh
     - 02-deb12bootzfs-system-locale.sh
     - 03-deb12bootzfs-kernel-zfs.sh

@@ -21,6 +21,6 @@ hetzner_deb12_zfs_v_root_password: "{{ hetzner_root_pass }}"
 hetzner_deb12_zfs_v_encrypt_rpool: 0 # 0=false, 1=true
 hetzner_deb12_zfs_v_passphrase:
 hetzner_deb12_zfs_v_zfs_experimental: 0
-hetzner_deb12_zfs_v_selected_disks: '''({% for device in hostvars[inventory_hostname].zfs_root_devices %}"{{ device }}" {% endfor %})'''
+hetzner_deb12_zfs_v_selected_disks: '({% for device in hostvars[inventory_hostname].zfs_root_devices %}"{{ device }}" {% endfor %})'
 
 hetzner_deb12_zfs_v_pools_mirror_option: mirror
