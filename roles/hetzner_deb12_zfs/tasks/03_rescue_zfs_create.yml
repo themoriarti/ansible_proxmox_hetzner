@@ -1,14 +1,48 @@
 # tasks file
 ---
-- name: RESCUE - Copy debian 12 zfs setup script
+- name: RESCUE - Copy debian 12 zfs variable and function script
   ansible.builtin.copy:
-    src: deb12bootzfs.sh
-    dest: /tmp/deb12bootzfs.sh
+    src: config.sh
+    dest: /tmp/config.sh
     owner: root
     group: root
     mode: "0755"
 
-- name: RESCUE - Run debian 12 zfs setup script
-  ansible.builtin.shell: /tmp/deb12bootzfs.sh
+- name: RESCUE - Copy disk prep script
+  ansible.builtin.copy:
+    src: 01-deb12bootzfs-disk-prep.sh
+    dest: /tmp/01-deb12bootzfs-disk-prep.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: RESCUE - Copy system and locale script
+  ansible.builtin.copy:
+    src: 02-deb12bootzfs-system-locale.sh
+    dest: /tmp/02-deb12bootzfs-system-locale.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: RESCUE - Copy kernel apps and finish script
+  ansible.builtin.copy:
+    src: 03-deb12bootzfs-kernel-apps-finish.sh
+    dest: /tmp/03-deb12bootzfs-kernel-apps-finish.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: RESCUE - Run debian 12 zfs disk prep script
+  ansible.builtin.shell: /tmp/01-deb12bootzfs-disk-prep.sh
+  args:
+    chdir: /tmp
+
+- name: RESCUE - Run debian 12 system and locale script
+  ansible.builtin.shell: /tmp/02-deb12bootzfs-system-locale.sh
+  args:
+    chdir: /tmp
+
+- name: RESCUE - Run debian 12 system and locale script
+  ansible.builtin.shell: /tmp/03-deb12bootzfs-kernel-apps-finish.sh
   args:
     chdir: /tmp
