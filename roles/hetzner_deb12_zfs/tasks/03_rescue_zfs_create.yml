@@ -1,6 +1,6 @@
 # tasks file
 ---
-- name: RESCUE - Copy devian 12 zfs script config
+- name: RESCUE - Copy debian 12 zfs script config
   ansible.builtin.template:
     src: config.sh.j2
     dest: /tmp/config.sh

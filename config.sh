@@ -5,19 +5,19 @@
 export TMPDIR=/tmp
 
 # Variables
-v_bpool_name={{ hetzner_deb12_zfs_v_bpool_name }}
-v_rpool_name={{ hetzner_deb12_zfs_v_rpool_name }}
-v_swap_size={{ hetzner_deb12_zfs_v_swap_size }}
-v_free_tail_space={{ hetzner_deb12_zfs_v_free_tail_space }}
-v_hostname={{ hetzner_deb12_zfs_v_hostname }}
-v_kernel_variant={{ hetzner_deb12_zfs_v_kernel_variant }}
-v_zfs_arc_max_mb={{ hetzner_deb12_zfs_v_zfs_arc_max_mb }}
-v_root_password={{ hetzner_deb12_zfs_v_root_password }}
-v_encrypt_rpool={{ hetzner_deb12_zfs_v_encrypt_rpool }}
-v_passphrase={{ hetzner_deb12_zfs_v_passphrase }}
-v_zfs_experimental={{ hetzner_deb12_zfs_v_zfs_experimental }}
-v_selected_disks={{ hetzner_deb12_zfs_v_selected_disks }}
-v_pools_mirror_option={{ hetzner_deb12_zfs_v_pools_mirror_option }}
+v_bpool_name=bpool
+v_rpool_name=rpool
+v_swap_size=32
+v_free_tail_space=0
+v_hostname=prox02.84lmr.com
+v_kernel_variant=
+v_zfs_arc_max_mb=64
+v_root_password=BFmHG5NC6p63VA
+v_encrypt_rpool=0
+v_passphrase=
+v_zfs_experimental=0
+v_selected_disks='("/dev/disk/by-id/nvme-SAMSUNG_MZQLB960HAJR-00007_S437NA0N701606" "/dev/disk/by-id/nvme-SAMSUNG_MZQLB960HAJR-00007_S437NA0N701616" )'
+v_pools_mirror_option=mirror
 
 
 # Constants
