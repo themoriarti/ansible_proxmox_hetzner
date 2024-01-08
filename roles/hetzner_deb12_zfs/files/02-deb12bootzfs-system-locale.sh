@@ -66,41 +66,38 @@ chroot_execute "apt update"
 echo "======= setting locale, console and language =========="
 chroot_execute "apt install --yes -qq locales debconf-i18n apt-utils"
 sed -i 's/# en_US.UTF-8/en_US.UTF-8/' "$c_zfs_mount_dir/etc/locale.gen"
-sed -i 's/# fr_FR.UTF-8/fr_FR.UTF-8/' "$c_zfs_mount_dir/etc/locale.gen"
-sed -i 's/# fr_FR.UTF-8/fr_FR.UTF-8/' "$c_zfs_mount_dir/etc/locale.gen"
-sed -i 's/# de_AT.UTF-8/de_AT.UTF-8/' "$c_zfs_mount_dir/etc/locale.gen"
-sed -i 's/# de_DE.UTF-8/de_DE.UTF-8/' "$c_zfs_mount_dir/etc/locale.gen"
+sed -i 's/# en_GB.UTF-8/en_GB.UTF-8/' "$c_zfs_mount_dir/etc/locale.gen"
 
 chroot_execute 'cat <<CONF | debconf-set-selections
 locales locales/default_environment_locale      select  en_US.UTF-8
-keyboard-configuration  keyboard-configuration/store_defaults_in_debconf_db     boolean true
-keyboard-configuration  keyboard-configuration/variant  select  German
-keyboard-configuration  keyboard-configuration/unsupported_layout       boolean true
-keyboard-configuration  keyboard-configuration/modelcode        string  pc105
-keyboard-configuration  keyboard-configuration/unsupported_config_layout        boolean true
-keyboard-configuration  keyboard-configuration/layout   select  German
-keyboard-configuration  keyboard-configuration/layoutcode       string  de
-keyboard-configuration  keyboard-configuration/optionscode      string
-keyboard-configuration  keyboard-configuration/toggle   select  No toggling
-keyboard-configuration  keyboard-configuration/xkb-keymap       select  de
-keyboard-configuration  keyboard-configuration/switch   select  No temporary switch
-keyboard-configuration  keyboard-configuration/unsupported_config_options       boolean true
-keyboard-configuration  keyboard-configuration/ctrl_alt_bksp    boolean false
-keyboard-configuration  keyboard-configuration/variantcode      string
-keyboard-configuration  keyboard-configuration/model    select  Generic 105-key PC (intl.)
-keyboard-configuration  keyboard-configuration/altgr    select  The default for the keyboard layout
-keyboard-configuration  keyboard-configuration/compose  select  No compose key
-keyboard-configuration  keyboard-configuration/unsupported_options      boolean true
-console-setup   console-setup/fontsize-fb47     select  8x16
-console-setup   console-setup/store_defaults_in_debconf_db      boolean true
-console-setup   console-setup/codeset47 select  # Latin1 and Latin5 - western Europe and Turkic languages
-console-setup   console-setup/fontface47        select  Fixed
-console-setup   console-setup/fontsize  string  8x16
-console-setup   console-setup/charmap47 select  UTF-8
-console-setup   console-setup/fontsize-text47   select  8x16
-console-setup   console-setup/codesetcode       string  Lat15
+# keyboard-configuration  keyboard-configuration/store_defaults_in_debconf_db     boolean true
+# keyboard-configuration  keyboard-configuration/variant  select  German
+# keyboard-configuration  keyboard-configuration/unsupported_layout       boolean true
+# keyboard-configuration  keyboard-configuration/modelcode        string  pc105
+# keyboard-configuration  keyboard-configuration/unsupported_config_layout        boolean true
+# keyboard-configuration  keyboard-configuration/layout   select  German
+# keyboard-configuration  keyboard-configuration/layoutcode       string  de
+# keyboard-configuration  keyboard-configuration/optionscode      string
+# keyboard-configuration  keyboard-configuration/toggle   select  No toggling
+# keyboard-configuration  keyboard-configuration/xkb-keymap       select  de
+# keyboard-configuration  keyboard-configuration/switch   select  No temporary switch
+# keyboard-configuration  keyboard-configuration/unsupported_config_options       boolean true
+# keyboard-configuration  keyboard-configuration/ctrl_alt_bksp    boolean false
+# keyboard-configuration  keyboard-configuration/variantcode      string
+# keyboard-configuration  keyboard-configuration/model    select  Generic 105-key PC (intl.)
+# keyboard-configuration  keyboard-configuration/altgr    select  The default for the keyboard layout
+# keyboard-configuration  keyboard-configuration/compose  select  No compose key
+# keyboard-configuration  keyboard-configuration/unsupported_options      boolean true
+# console-setup   console-setup/fontsize-fb47     select  8x16
+# console-setup   console-setup/store_defaults_in_debconf_db      boolean true
+# console-setup   console-setup/codeset47 select  # Latin1 and Latin5 - western Europe and Turkic languages
+# console-setup   console-setup/fontface47        select  Fixed
+# console-setup   console-setup/fontsize  string  8x16
+# console-setup   console-setup/charmap47 select  UTF-8
+# console-setup   console-setup/fontsize-text47   select  8x16
+# console-setup   console-setup/codesetcode       string  Lat15
 tzdata tzdata/Areas select Europe
-tzdata tzdata/Zones/Europe select Vienna
+tzdata tzdata/Zones/Europe select London
 grub-pc grub-pc/install_devices_empty   boolean true
 CONF'
 

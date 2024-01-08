@@ -31,6 +31,12 @@ chroot_execute 'cat << DKMS > /etc/dkms/zfs.conf
 REMAKE_INITRD="yes"
 DKMS'
 
+chroot_execute 'cat << CONF > /etc/apt/preferences.d/90_zfs
+Package: src:zfs-linux
+Pin: release n=bookworm-backports
+Pin-Priority: 990
+CONF'
+
 echo "======= setting up zfs cache =========="
 cp /etc/zpool.cache "$c_zfs_mount_dir/etc/zfs/zpool.cache"
 

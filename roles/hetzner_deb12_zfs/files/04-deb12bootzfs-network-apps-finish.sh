@@ -13,13 +13,11 @@ source config.sh
 export LC_ALL=en_US.UTF-8
 export NCURSES_NO_UTF8_ACS=1
 
-
-
 echo "======= installing OpenSSH, network tooling and resolvconf =========="
 chroot_execute "apt install --yes openssh-server net-tools resolvconf"
 
 echo "======= configuring nameservers =========="
-cat > "$c_zfs_mount_dir/etc/resolvconf/resolv.conf.d/head" <<'CONF'
+cat > "$c_zfs_mount_dir/etc/resolvconf/resolv.conf.d/head" <<CONF
 nameserver 1.1.1.1
 nameserver 8.8.8.8
 CONF

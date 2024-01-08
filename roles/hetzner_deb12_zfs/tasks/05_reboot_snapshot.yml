@@ -1,6 +1,7 @@
 # tasks file
 ---
 # Reboot server
+# Take snapshots of the pools
 
 - name: Reboot RESCUE and wait for it to restart as Debian 12 on ZFS
   reboot:
