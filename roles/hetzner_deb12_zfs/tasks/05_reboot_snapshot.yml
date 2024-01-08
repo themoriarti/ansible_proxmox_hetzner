@@ -3,7 +3,7 @@
 # Reboot server
 # Take snapshots of the pools
 
-- name: Reboot RESCUE and wait for it to restart as Debian 12 on ZFS
+- name: RESCUE - Reboot and wait for it to restart as Debian 12 on ZFS
   reboot:
     msg: "Reboot initiated by Ansible"
     connect_timeout: 5
@@ -11,3 +11,29 @@
     pre_reboot_delay: 2
     post_reboot_delay: 30
     test_command: whoami
+
+# Install an NTP service to synchronize time
+
+- name: DEB 12 - Ensure systemd-timesyncd is installed
+  package:
+    name: systemd-timesyncd
+    state: present
+
+- name: DEB12 Ensure systemd-timesyncd is running
+  ansible.builtin.systemd_service:
+    state: started
+    name: systemd-timesyncd
+
+- name: DEB12 - Remove dependencies that are no longer required
+  ansible.builtin.apt:
+    autoremove: yes
+
+- name: Create a snapshot of rpool
+  community.general.zfs:
+    name: rpool/ROOT/debian@install
+    state: present
+
+- name: Create a snapshot of bpool
+  community.general.zfs:
+    name: bpool/BOOT/debian@install
+    state: present

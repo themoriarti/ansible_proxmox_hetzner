@@ -42,7 +42,6 @@ echo "======= partitioning the disk =========="
 
 echo "======= create zfs pools and datasets =========="
 
-  encryption_options=()
   rpool_disks_partitions=()
   bpool_disks_partitions=()
 
@@ -54,21 +53,30 @@ echo "======= create zfs pools and datasets =========="
   pools_mirror_option=mirror
 
 zpool create \
-  $v_bpool_tweaks -O canmount=off -O devices=off \
+  -o ashift=12  \
   -o compatibility=grub2 \
   -o autotrim=on \
+  -o cachefile=/etc/zpool.cache \
+  -O compression=lz4 \
+  -O canmount=off \
+  -O devices=off \
   -O normalization=formD \
   -O relatime=on \
-  -O acltype=posixacl -O xattr=sa \
-  -o cachefile=/etc/zpool.cache \
+  -O acltype=posixacl \
+  -O xattr=sa \
   -O mountpoint=/boot -R $c_zfs_mount_dir -f \
   $v_bpool_name $v_pools_mirror_option "${bpool_disks_partitions[@]}"
 
 
 echo -n "$v_passphrase" | zpool create \
-  $v_rpool_tweaks \
+  -o ashift=12 \
   -o cachefile=/etc/zpool.cache \
-  "${encryption_options[@]}" \
+  -O acltype=posixacl \
+  -O compression=lz4 \
+  -O dnodesize=auto \
+  -O relatime=on \
+  -O xattr=sa \
+  -O normalization=formD \
   -O mountpoint=/ -R $c_zfs_mount_dir -f \
   $v_rpool_name $v_pools_mirror_option "${rpool_disks_partitions[@]}"
 

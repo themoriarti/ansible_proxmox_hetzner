@@ -5,21 +5,21 @@
 export TMPDIR=/tmp
 
 # Variables
-v_bpool_name=bpool
-v_bpool_tweaks="-o ashift=12 -O compression=lz4"
-v_rpool_name=rpool
-v_rpool_tweaks="-o ashift=12 -O acltype=posixacl -O compression=lz4 -O dnodesize=auto -O relatime=on -O xattr=sa -O normalization=formD"
-v_swap_size=32               # integer
-v_free_tail_space=0          # integer
-v_hostname=prox02.84lmr.com
-v_kernel_variant=
-v_zfs_arc_max_mb=64
-v_root_password=a3qmon
-v_encrypt_rpool=0             # 0=false, 1=true
-v_passphrase=
-v_zfs_experimental=0
-v_suitable_disks=()
-v_selected_disks=("/dev/disk/by-id/nvme-SAMSUNG_MZQLB960HAJR-00007_S437NA0N701606" "/dev/disk/by-id/nvme-SAMSUNG_MZQLB960HAJR-00007_S437NA0N701616")
+v_bpool_name={{ hetzner_deb12_zfs_v_bpool_name }}
+v_bpool_tweaks={{ hetzner_deb12_zfs_v_bpool_tweaks }}
+v_rpool_name={{ hetzner_deb12_zfs_v_rpool_name }}
+v_rpool_tweaks={{ hetzner_deb12_zfs_v_rpool_tweaks }}
+v_swap_size={{ hetzner_deb12_zfs_v_swap_size }}
+v_free_tail_space={{ hetzner_deb12_zfs_v_free_tail_space }}
+v_hostname={{ hetzner_deb12_zfs_v_hostname }}
+v_kernel_variant={{ hetzner_deb12_zfs_v_kernel_variant }}
+v_zfs_arc_max_mb={{ hetzner_deb12_zfs_v_zfs_arc_max_mb }}
+v_root_password={{ hetzner_deb12_zfs_v_root_password }}
+v_encrypt_rpool={{ hetzner_deb12_zfs_v_encrypt_rpool }}
+v_passphrase={{ hetzner_deb12_zfs_v_passphrase }}
+v_zfs_experimental={{ hetzner_deb12_zfs_v_zfs_experimental }}
+v_suitable_disks={{ hetzner_deb12_zfs_v_suitable_disks }}
+v_selected_disks={{ hetzner_deb12_zfs_v_selected_disks }}
 v_pools_mirror_option=mirror
 
 
@@ -27,9 +27,6 @@ v_pools_mirror_option=mirror
 c_deb_packages_repo=https://mirror.hetzner.com/debian/packages
 c_deb_security_repo=https://mirror.hetzner.com/debian/security
 c_default_zfs_arc_max_mb=64
-c_default_bpool_tweaks="-o ashift=12 -O compression=lz4"
-c_default_rpool_tweaks="-o ashift=12 -O acltype=posixacl -O compression=lz4 -O dnodesize=auto -O relatime=on -O xattr=sa -O normalization=formD"
-c_default_hostname=prox02.84lmr.com
 c_zfs_mount_dir=/mnt
 c_log_dir=$(dirname "$(mktemp)")/zfs-hetzner-vm
 c_install_log=$c_log_dir/install.log

@@ -4,5 +4,22 @@
 hetzner_api_user: secret
 hetzner_api_pass: secret
 hetzner_api_ssh_keys: []
-### General Setup settings
 
+### General Setup settings
+###   - passed into the scripts
+###   - through the config template
+
+# Variables
+hetzner_deb12_zfs_v_bpool_name: bpool
+hetzner_deb12_zfs_v_rpool_name: rpool
+hetzner_deb12_zfs_v_swap_size: 32 # integer
+hetzner_deb12_zfs_v_free_tail_space: 0 # integer
+hetzner_deb12_zfs_v_hostname: prox02.84lmr.com
+hetzner_deb12_zfs_v_kernel_variant:
+hetzner_deb12_zfs_v_zfs_arc_max_mb: 64
+hetzner_deb12_zfs_v_root_password: a3qmon
+hetzner_deb12_zfs_v_encrypt_rpool: 0 # 0=false, 1=true
+hetzner_deb12_zfs_v_passphrase:
+hetzner_deb12_zfs_v_zfs_experimental: 0
+hetzner_deb12_zfs_v_selected_disks: '("/dev/disk/by-id/nvme-SAMSUNG_MZQLB960HAJR-00007_S437NA0N701606" "/dev/disk/by-id/nvme-SAMSUNG_MZQLB960HAJR-00007_S437NA0N701616")'
+hetzner_deb12_zfs_v_pools_mirror_option: mirror
