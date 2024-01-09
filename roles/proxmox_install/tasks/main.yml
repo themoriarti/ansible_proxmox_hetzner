@@ -1,6 +1,8 @@
 ---
 # tasks file for install_proxmox
 
+# Based on instructions at: https://pve.proxmox.com/wiki/Install_Proxmox_VE_on_Debian_12_Bookworm
+
 # TODO:
 # Add assertions to check server is compatible?
 # Also that proxmox not installed already?
@@ -36,21 +38,66 @@
     filename: pve-install-repo
     update_cache: true
 
-- name: SERVER - Upgrade all packages before setup Proxmox
-  apt: upgrade=dist force_apt_get=yes
+# Removed as was causing problems by updating grub-pc
+# Seems to work fine without it
+# - name: SERVER - Upgrade all packages before setup Proxmox
+#   apt: upgrade=dist force_apt_get=yes
+- name: SERVER - Upgrade all packages before setup proxmox
+  ansible.builtin.apt:
+    #upgrade: dist
+    update_cache: yes
+    dpkg_options: "force-confold,force-confdef"
 
-- name: Check if rules file exists
+- name: SERVER - Check if reboot required
   ansible.builtin.stat:
-    path: ~/reboot.txt
+    path: /var/run/reboot-required
   register: reboot_required
 
-- name: Reboot a slow machine that might have lots of updates to apply
+- name: SERVER - Reboot required after packages upgraded
   ansible.builtin.reboot:
   when: reboot_required.stat.exists
 
-- name: Disable "externally-managed-environment"
+- name: SERVER - Disable "externally-managed-environment"
   ansible.builtin.file:
     path: /usr/lib/python3.11/EXTERNALLY-MANAGED
+    state: absent
+
+- name: PROXMOX - Install proxmox default kernel
+  ansible.builtin.apt:
+    pkg:
+      - proxmox-default-kernel
+
+- name: PROXMOX - Reboot required after proxmox default kernel installed
+  ansible.builtin.reboot:
+
+- name: PROXMOX - Install proxmox-ve, postfix, open-iscsi and chrony
+  ansible.builtin.apt:
+    pkg:
+      - proxmox-ve
+      - postfix
+      - open-iscsi
+      - chrony
+    state: present
+
+- name: PROXMOX - Remove debian default kernels
+  ansible.builtin.apt:
+    pkg:
+      - linux-image-amd64
+      - "linux-image-6.1*"
+    state: absent
+
+- name: PROXMOX - Update GRUB
+  ansible.builtin.shell: update-grub
+
+- name: PROXMOX - Remove os-prober
+  ansible.builtin.apt:
+    pkg:
+      - os-prober
+    state: absent
+
+- name: PROXMOX - remove enterprise repo
+  file:
+    path: /etc/apt/sources.list.d/pve-enterprise.list
     state: absent
 # - name: fix
 #   shell: apt -q -y purge firmware-bnx2x firmware-realtek firmware-linux firmware-linux-free firmware-linux-nonfree

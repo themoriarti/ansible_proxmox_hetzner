@@ -5,10 +5,10 @@
   gather_facts: false
 
   tasks:
-    # - name: Wipe server and install Debian 12 on ZFS
-    #   ansible.builtin.include_role:
-    #     name: "hetzner_deb12_zfs"
-    #
+    - name: Wipe server and install Debian 12 on ZFS
+      ansible.builtin.include_role:
+        name: "hetzner_deb12_zfs"
+
     - name: Secure server with fail2ban
       ansible.builtin.include_role:
         name: fail2ban
