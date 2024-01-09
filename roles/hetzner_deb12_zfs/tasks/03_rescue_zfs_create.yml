@@ -40,3 +40,15 @@
   ansible.builtin.shell: /tmp/04-deb12bootzfs-network-apps-finish.sh
   args:
     chdir: /tmp
+
+# Has just in case machine left with files in tmp on script fail
+- name: RESCUE - Remove script files
+  ansible.builtin.file:
+    path: "{{item}}"
+    state: absent
+  loop:
+    - config.sh
+    - 01-deb12bootzfs-disk-prep.sh
+    - 02-deb12bootzfs-system-locale.sh
+    - 03-deb12bootzfs-kernel-zfs.sh
+    - 04-deb12bootzfs-network-apps-finish.sh

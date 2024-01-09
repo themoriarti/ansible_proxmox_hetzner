@@ -1,5 +1,12 @@
 # tasks file
 ---
+- name: get needed info from server
+  ansible.builtin.setup:
+    filter:
+      - "ansible_python_version"
+      - "ansible_distribution"
+      - "ansible_distribution_major_version"
+
 - name: install
   ansible.builtin.apt:
     name: "{{ ' '.join(fail2ban_dependencies).split() }}"
