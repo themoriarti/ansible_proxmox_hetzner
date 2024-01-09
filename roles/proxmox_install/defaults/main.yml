@@ -1,0 +1,20 @@
+---
+# defaults file for proxmox_install
+
+### ACME - letsencrypt
+# hetzner_pve_create_acme: true
+# hetzner_pve_acme_mail: mail@example.com
+# hetzner_pve_acme_domain: vmhost.example.com
+# hetzner_pve_acme_server: https://acme-v02.api.letsencrypt.org/directory ## PROD
+#hetzner_pve_acme_server: https://acme-staging-v02.api.letsencrypt.org/directory
+
+# hetzner_pve_custom_packages:
+#   - nano
+#   - screen
+#   - htop
+#   - iotop
+#   - jnettop
+#   - tcpdump
+#   - zsh
+#   - git
+#   - zfsutils-linux

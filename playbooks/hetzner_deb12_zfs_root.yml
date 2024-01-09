@@ -1,12 +1,17 @@
 ---
 - name: "Wipe and set up minimal Debian 12 bookworm on Hetzer server with ZFS filesystem"
-  hosts: vmhost
+  hosts: rebuild_hetzner_deb12_zfs
   user: root
   gather_facts: false
 
-  roles:
-    #  - role: "hetzner_deb12_zfs"
-    - role: "fail2ban"
+  tasks:
+    # - name: Wipe server and install Debian 12 on ZFS
+    #   ansible.builtin.include_role:
+    #     name: "hetzner_deb12_zfs"
+    #
+    - name: Secure server with fail2ban
+      ansible.builtin.include_role:
+        name: fail2ban
       vars:
         fail2ban_backend: systemd
         fail2ban_logtarget: systemd
@@ -18,3 +23,10 @@
           - 127.0.0.1/8
           - ::1
           - 95.141.18.213 # G Network IP address
+
+    - name: Gather server information for MOTD
+      ansible.builtin.setup:
+
+    - name: Install MOTD
+      ansible.builtin.include_role:
+        name: "arillso.motd"

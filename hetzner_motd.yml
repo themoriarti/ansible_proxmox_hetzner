@@ -1,4 +1,0 @@
-- hosts: vmhost
-  user: root
-  roles:
-    - arillso.motd

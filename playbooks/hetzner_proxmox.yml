@@ -1,0 +1,28 @@
+---
+- name: "Install proxmox on debian 12 bookworm"
+  hosts: rebuild_hetzner_deb12_zfs
+  user: root
+  gather_facts: false
+
+  tasks:
+    # - name: Secure server with fail2ban
+    #   ansible.builtin.include_role:
+    #     name: fail2ban
+    #   vars:
+    #     fail2ban_backend: systemd
+    #     fail2ban_logtarget: systemd
+    #     fail2ban_bantime: 1h
+    #     fail2ban_findtime: 2d
+    #     fail2ban_filterd_path: ~/ansible/roles/fail2ban/templates/etc/fail2ban/filter.d/
+    #     fail2ban_jaild_path: ~/ansible/roles/fail2ban/templates/etc/fail2ban/jail.d/
+    #     fail2ban_ignoreips:
+    #       - 127.0.0.1/8
+    #       - ::1
+    #       - 95.141.18.213 # G Network IP address
+
+    - name: Gather server information
+      ansible.builtin.setup:
+
+    - name: Install PROXMOX
+      ansible.builtin.include_role:
+        name: "proxmox_install"

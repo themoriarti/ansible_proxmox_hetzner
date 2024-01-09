@@ -1,3 +1,5 @@
 ---
+ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=90 -o ControlMaster=auto -o ControlPersist=120s"
 hetzner_api_user: "{{ vault_hetzner_api_user }}"
 hetzner_api_pass: "{{ vault_hetzner_api_pass }}"
+prox_become_pass: "{{ vault_prox_become_pass}}"

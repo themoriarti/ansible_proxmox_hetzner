@@ -1,14 +1,18 @@
 - name: View Hetzner Robot Servers
-  hosts: localhost
-  vars_files:
-    - ./group_vars/vars.yml
+  hosts: hetzner
+  gather_facts: false
   tasks:
     - name: Query a list of all servers
       community.hrobot.server_info:
-        hetzner_user: "{{ hetzner_pve_hetzner_api_user }}"
-        hetzner_password: "{{ hetzner_pve_hetzner_api_pass }}"
+        hetzner_user: "{{ hetzner_api_user }}"
+        hetzner_password: "{{ hetzner_api_pass }}"
       register: result
-    - debug:
+      delegate_to: localhost
+      run_once: true
+
+    - name: Show results
+      ansible.builtin.debug:
         msg:
           - "Server 1:  {{ result.servers[0].server_number }} - {{ result.servers[0].server_name }}"
           - "Server 2:  {{ result.servers[1].server_number }} - {{ result.servers[1].server_name }}"
+      run_once: true

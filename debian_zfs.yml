@@ -55,8 +55,8 @@
     #       - zfsutils-linux
     #     state: present
 
-    - name: check ZFS pool existance
-      command: zpool list -Ho name {{ zfs_pool_name }}
+    - name: Check ZFS pool existence
+      ansible.builtin.command: zpool list -Ho name {{ zfs_pool_name }}
       register: result_pool_list
       ignore_errors: yes
       changed_when: false
