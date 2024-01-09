@@ -1,0 +1,3 @@
+---
+hetzner_api_user: "{{ vault_hetzner_api_user }}"
+hetzner_api_pass: "{{ vault_hetzner_api_pass }}"

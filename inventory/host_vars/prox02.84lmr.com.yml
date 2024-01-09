@@ -1,0 +1,23 @@
+---
+# Hosted on Hetzner
+
+# Required for Hetzner API - e.g. for forcing into rescue mode or pressing reset button
+ENV_INVENTORY_SRV_NO: 2227394
+
+# Drive information required for when rebuilding the server with zfs
+# Drive information tracked as drives can be assigned sda etc. randomly on reboot
+#
+# The drives (smaller) to be set up for boot and root pools in mirror
+zfs_root_devices:
+  [
+    "/dev/disk/by-id/nvme-SAMSUNG_MZQLB960HAJR-00007_S437NA0N701606",
+    "/dev/disk/by-id/nvme-SAMSUNG_MZQLB960HAJR-00007_S437NA0N701616",
+  ]
+# The drives (larger) to be set up for tank pool in mirror
+zfs_tank_devices:
+  [
+    "/dev/disk/by-id/nvme-SAMSUNG_MZQLB1T9HAJR-00007_S439NA0R202624",
+    "/dev/disk/by-id/nvme-SAMSUNG_MZQLB1T9HAJR-00007_S439NC0R303794",
+  ]
+# If want to use imageinstaller to set up machine then need to force into rescue mode
+# and note the relevant nvme drives for monitoring and then passing into relevant script

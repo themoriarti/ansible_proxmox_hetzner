@@ -1,9 +1,11 @@
 # defaults file
 ---
 ### Hetzner API - https://robot.hetzner.com/preferences/index
-hetzner_api_user: secret
-hetzner_api_pass: secret
-hetzner_api_ssh_keys: []
+
+# Now pulled from group_vars hetzner vault
+hetzner_deb12_zfs_hetzner_api_user: "{{ hetzner_api_user }}"
+hetzner_deb12_zfs_hetzner_api_pass: "{{ hetzner_api_pass }}"
+hetzner_deb12_zfs_hetzner_api_ssh_keys: []
 
 ### General Setup settings
 ###   - passed into the scripts

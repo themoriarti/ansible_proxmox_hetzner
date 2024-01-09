@@ -32,8 +32,8 @@
 
 - name: HETZNER - Enable a rescue system (64bit Linux) for the next boot
   community.hrobot.boot:
-    hetzner_user: "{{ hetzner_api_user }}"
-    hetzner_password: "{{ hetzner_api_pass }}"
+    hetzner_user: "{{ hetzner_deb12_zfs_hetzner_api_user }}"
+    hetzner_password: "{{ hetzner_deb12_zfs_hetzner_api_pass }}"
     server_number: "{{ ENV_INVENTORY_SRV_NO }}"
     rescue:
       os: linux
@@ -42,8 +42,8 @@
 
 - name: HETZNER - Reset SERVER
   community.hrobot.reset:
-    hetzner_user: "{{ hetzner_api_user }}"
-    hetzner_password: "{{ hetzner_api_pass }}"
+    hetzner_user: "{{ hetzner_deb12_zfs_hetzner_api_user }}"
+    hetzner_password: "{{ hetzner_deb12_zfs_hetzner_api_pass }}"
     server_number: "{{ ENV_INVENTORY_SRV_NO }}"
     reset_type: hardware
   delegate_to: localhost

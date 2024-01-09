@@ -1,0 +1,18 @@
+---
+- name: "Temporary playbook for testing"
+  hosts: linode
+  user: root
+  gather_facts: false
+  vars_files:
+    - ~/ansible/roles/hetzner_deb12_zfs/defaults/main.yml
+    - ~/ansible/roles/hetzner_deb12_zfs/vars/main.yml
+  tasks:
+    - name: Report host variables from vault
+      ansible.builtin.debug:
+        var: linode_root_password
+
+    # - name: RESCUE - Copy debian 12 zfs script config
+    #   ansible.builtin.template:
+    #     src: ~/ansible/roles/hetzner_deb12_zfs/templates/config.sh.j2
+    #     dest: ~/ansible/config.sh
+    #   delegate_to: localhost
