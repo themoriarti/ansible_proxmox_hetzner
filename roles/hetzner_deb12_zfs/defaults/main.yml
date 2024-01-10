@@ -17,7 +17,6 @@ hetzner_deb12_zfs_v_bpool_name: bpool
 hetzner_deb12_zfs_v_rpool_name: rpool
 hetzner_deb12_zfs_v_swap_size: 32 # integer
 hetzner_deb12_zfs_v_free_tail_space: 0 # integer
-hetzner_deb12_zfs_v_hostname: "{{ inventory_hostname }}"
 hetzner_deb12_zfs_v_kernel_variant:
 hetzner_deb12_zfs_v_zfs_arc_max_mb: 64
 hetzner_deb12_zfs_v_encrypt_rpool: 0 # 0=false, 1=true
@@ -25,3 +24,7 @@ hetzner_deb12_zfs_v_passphrase:
 hetzner_deb12_zfs_v_zfs_experimental: 0
 hetzner_deb12_zfs_v_selected_disks: '({% for device in hostvars[inventory_hostname].zfs_root_devices %}"{{ device }}" {% endfor %})'
 hetzner_deb12_zfs_v_pools_mirror_option: mirror
+
+hetzner_deb12_zfs_v_ip_address: "{{ ansible_host }}"
+hetzner_deb12_zfs_v_hostname: "{{ inventory_hostname }}"
+hetzner_deb12_zfs_v_hostname_alias: "{{ inventory_hostname_short}}"

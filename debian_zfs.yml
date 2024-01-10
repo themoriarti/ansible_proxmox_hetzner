@@ -31,30 +31,12 @@
       - "-O relatime=on"
       - "-O xattr=sa"
       - "-O normalization=formD"
+    zfs_pool_state: present
 
     zfs_filesystems:
       - vm-drives
 
-    zfs_pool_state: present
-
   tasks:
-    # Think not needed if reboot after proxmox install
-
-    # - name: Install ZFS part 1
-    #   ansible.builtin.apt:
-    #     pkg:
-    #       - dpkg-dev
-    #       # - linux-headers-generic
-    #       # - linux-image-generic
-    #     state: present
-
-    # - name: Install ZFS part 2
-    #   ansible.builtin.apt:
-    #     pkg:
-    #       - zfs-dkms
-    #       - zfsutils-linux
-    #     state: present
-
     - name: Check ZFS pool existence
       ansible.builtin.command: zpool list -Ho name {{ zfs_pool_name }}
       register: result_pool_list
@@ -71,21 +53,15 @@
       when:
         - zfs_pool_state | default('present') == 'present'
         - result_pool_list.rc == 1
+      changed_when: my_output.rc != 0
 
-    - name: mount pool after reboot
-      command: >-
+    - name: Import created pool
+      ansible.builtin.command: >-
         zpool import {{ zfs_pool_name }}
       when:
         - zfs_pool_state | default('present') == 'present'
         - result_pool_list.rc == 1
-
-    - name: Gather space usage about all imported ZFS pools
-      community.general.zpool_facts: properties='free,size'
-
-    - name: Print gathered information
-      ansible.builtin.debug:
-        msg: "ZFS pool {{ item.name }} has {{ item.free }} free space out of {{ item.size }}."
-      with_items: "{{ ansible_zfs_pools }}"
+      changed_when: my_output.rc != 0
 
     - name: Create ZFS file systems
       community.general.zfs:
@@ -93,6 +69,14 @@
         state: present
       with_items: "{{ zfs_filesystems }}"
       tags: storage
+
+    # - name: Gather space usage about all imported ZFS pools
+    #   community.general.zpool_facts: properties='free,size'
+
+    # - name: Print gathered information
+    #   ansible.builtin.debug:
+    #     msg: "ZFS pool {{ item.name }} has {{ item.free }} free space out of {{ item.size }}."
+    #   with_items: "{{ ansible_zfs_pools }}"
 
     # - name: PROXMOX post tasks - Copy ZFS apt preferences
     #   ansible.builtin.copy:

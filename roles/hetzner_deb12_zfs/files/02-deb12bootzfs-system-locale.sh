@@ -25,7 +25,7 @@ echo "$v_hostname" > $c_zfs_mount_dir/etc/hostname
 cat > "$c_zfs_mount_dir/etc/hosts" <<CONF
 127.0.1.1 ${v_hostname}
 127.0.0.1 localhost
-
+${v_ip_address} ${v_hostname} ${v_hostname_alias}
 # The following lines are desirable for IPv6 capable hosts
 ::1 ip6-localhost ip6-loopback
 fe00::0 ip6-localnet
