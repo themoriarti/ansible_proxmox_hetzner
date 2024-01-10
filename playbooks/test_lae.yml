@@ -1,10 +1,9 @@
 ---
 - name: "Temporary playbook for testing lae.proxmox role"
-  hosts: pve01
+  hosts: pve
   user: root
   gather_facts: true
-  # vars_files:
-  #   - ~/ansible/roles/hetzner_deb12_zfs/defaults/main.yml
+  # Most variables should come from the group_vars/pve/01 vars.yml file
   tasks:
     - name: Test lae.proxmox
       ansible.builtin.include_role:
@@ -12,3 +11,4 @@
       vars:
         - pve_group: pve01
         - pve_reboot_on_kernel_update: true
+        - pve_repository_line: "deb [arch=amd64] http://mirror.hetzner.com/debian/pve {{ ansible_facts.distribution_release }} pve-no-subscription"

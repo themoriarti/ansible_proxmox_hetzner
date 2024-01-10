@@ -6,6 +6,10 @@
   vars_files:
     - ~/ansible/roles/hetzner_deb12_zfs/defaults/main.yml
   tasks:
+    - name: Check can access drive names
+      ansible.builtin.debug:
+        var: hostvars[inventory_hostname].zfs_tank_devices
+
     # - name: SERVER - Get OS release name
     #   ansible.builtin.setup:
     #     gather_subset:
@@ -46,8 +50,8 @@
     #   ansible.builtin.debug:
     #     var: ansible_default_ipv4.address
 
-    - name: RESCUE - Copy debian 12 zfs script config
-      ansible.builtin.template:
-        src: ~/ansible/roles/hetzner_deb12_zfs/templates/config.sh.j2
-        dest: ~/ansible/config.sh
-      delegate_to: localhost
+    # - name: RESCUE - Copy debian 12 zfs script config
+    #   ansible.builtin.template:
+    #     src: ~/ansible/roles/hetzner_deb12_zfs/templates/config.sh.j2
+    #     dest: ~/ansible/config.sh
+    #   delegate_to: localhost

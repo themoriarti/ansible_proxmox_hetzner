@@ -1,0 +1,4 @@
+---
+# Variables for the pve group of servers which run proxmox
+# Currently only used in the lae.proxmox role
+

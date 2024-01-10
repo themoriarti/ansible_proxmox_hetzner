@@ -42,9 +42,14 @@
 # Seems to work fine without it
 # - name: SERVER - Upgrade all packages before setup Proxmox
 #   apt: upgrade=dist force_apt_get=yes
+- name: SERVER - Hold grub-pc
+  ansible.builtin.dpkg_selections:
+    name: grub-pc
+    selection: hold
+
 - name: SERVER - Upgrade all packages before setup proxmox
   ansible.builtin.apt:
-    #upgrade: dist
+    upgrade: dist
     update_cache: yes
     dpkg_options: "force-confold,force-confdef"
 

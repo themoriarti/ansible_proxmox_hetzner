@@ -12,5 +12,5 @@ prox02.84lmr.com    ansible_host=135.181.140.236
 [rebuild_hetzner_deb12_zfs]
 prox02.84lmr.com    ansible_host=135.181.140.236
 
-[pve01]
+[pve]
 prox02.84lmr.com    ansible_host=135.181.140.236

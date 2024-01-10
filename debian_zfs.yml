@@ -1,9 +1,8 @@
 - name: "Install ZFS pool"
-  hosts: vmhost
+  hosts: rebuild_hetzner_deb12_zfs
   user: root
 
   # Install single zpool
-  # Set up variable drive file systems within the pool
 
   # Source for installation instructions:
   #   https://openzfs.github.io/openzfs-docs/Getting%20Started/Debian/index.html#installation
@@ -12,30 +11,31 @@
   # Check if pool exists
   # Create pool
   # Check each file system exists
-  # Somewhere proxmox needs to see each file system
+  # So make this a role called from the playlist that:
+  #   boots rescue to deb12 on zfs
+  #   does this
+  #   installs proxmox
+  #   configures storage devices on proxmoxz
+
   vars:
     zfs_pool_name: tank
     zfs_pool_mode: mirror
+    zfs_pool_devices: "{{hostvars[inventory_hostname].zfs_tank_devices }}"
     zfs_pool_options:
-      - "ashift=12"
+      - "-o ashift=12"
+      - "-o autotrim=on"
+      - "-o cachefile=/etc/zpool.cache"
+      - "-O acltype=posixacl"
+      - "-O compression=lz4"
+      - "-O dnodesize=auto"
+      - "-O relatime=on"
+      - "-O xattr=sa"
+      - "-O normalization=formD"
+
     zfs_filesystems:
-      #- backups
-      #- isos
       - vm-drives
+
     zfs_pool_state: present
-
-    # To be used with proxmox to add info to /etc/pve/storage.cfg
-    pve_storages:
-      - name: iso
-        type: dir
-        path: /tank/iso
-        content: ["iso"]
-
-    # # zfs_pool_mountpoint: /mnt/data
-    # FROM INVENTORY FILE
-    # zfs_pool_devices:
-    # - nvme-SAMSUNG_MZQLB1T9HAJR-00007_S439NA0R202624
-    # - nvme-SAMSUNG_MZQLB1T9HAJR-00007_S439NC0R303794
 
   tasks:
     # Think not needed if reboot after proxmox install
@@ -58,13 +58,13 @@
     - name: Check ZFS pool existence
       ansible.builtin.command: zpool list -Ho name {{ zfs_pool_name }}
       register: result_pool_list
-      ignore_errors: yes
+      ignore_errors: true
       changed_when: false
 
-    - name: create ZFS pool
-      command: >-
+    - name: Create ZFS pool
+      ansible.builtin.command: >-
         zpool create
-        {{ '-o' if zfs_pool_options else '' }} {{ zfs_pool_options | join(' -o ') }}
+        {{ zfs_pool_options | join(' ') }}
         {{ zfs_pool_name }}
         {{ zfs_pool_mode if zfs_pool_mode else '' }}
         {{ zfs_pool_devices | join(' ') }}
@@ -72,16 +72,9 @@
         - zfs_pool_state | default('present') == 'present'
         - result_pool_list.rc == 1
 
-    - name: apply compression
-      command: >-
-        zfs set compress=lz4 tank
-      when:
-        - zfs_pool_state | default('present') == 'present'
-        - result_pool_list.rc == 1
-
     - name: mount pool after reboot
       command: >-
-        systemctl enable zfs-import@{{ zfs_pool_name }}.service
+        zpool import {{ zfs_pool_name }}
       when:
         - zfs_pool_state | default('present') == 'present'
         - result_pool_list.rc == 1

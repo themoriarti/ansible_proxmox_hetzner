@@ -19,7 +19,7 @@
     that:
       - "inventory_hostname in groups[pve_group]"
     msg: "This host does not appear to be in the group {{ pve_group }}, \
-          did you specify the pve_group host variable correctly?"
+      did you specify the pve_group host variable correctly?"
   when: "pve_cluster_enabled | bool"
 
 - import_tasks: ssh_cluster_config.yml
@@ -35,9 +35,9 @@
     marker: "# {mark} ANSIBLE MANAGED: Proxmox Cluster Hosts"
     content: "\
       {% for host in groups[pve_group] %}\
-        {{ hostvars[host].pve_cluster_addr0 }}
-        {{ hostvars[host].ansible_fqdn }}
-        {{ hostvars[host].ansible_hostname }}
+      {{ hostvars[host].pve_cluster_addr0 }}
+      {{ hostvars[host].ansible_fqdn }}
+      {{ hostvars[host].ansible_hostname }}
 
 
       {% endfor %}"
@@ -54,7 +54,7 @@
     # detect word boundaries (\b wasn't working for some reason)
     regexp: "\
       ^(?!\
-        {{ _correct_line | regex_escape() }}\
+      {{ _correct_line | regex_escape() }}\
       )\
       {# Ignore lines starting with the current cluster host #}\
       (?!{{ _correct_ip | regex_escape() }})\
@@ -63,7 +63,7 @@
       {# Match any hostnames, surrounded by whitespace #}\
       +(\\s+.*)?\\s\
       (\
-        {{ _match_hosts | map('regex_escape') | join('|') }}\
+      {{ _match_hosts | map('regex_escape') | join('|') }}\
       )\
       (\\s+.*|\\s*)$"
     state: absent
@@ -132,7 +132,7 @@
 
 - name: Add Proxmox Ceph repository
   apt_repository:
-    repo: '{{ pve_ceph_repository_line }}'
+    repo: "{{ pve_ceph_repository_line }}"
     filename: ceph
     state: present
   register: _pve_ceph_repo
@@ -147,6 +147,11 @@
   retries: 2
   register: _dist_upgrade
   until: _dist_upgrade is succeeded
+
+- name: Hold grub-pc
+  ansible.builtin.dpkg_selections:
+    name: grub-pc
+    selection: hold
 
 - name: Perform system upgrades
   apt:
@@ -183,7 +188,7 @@
     - name: Remove subscription check wrapper function in web UI
       ansible.builtin.lineinfile:
         path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
-        line: '        orig_cmd(); return;'
+        line: "        orig_cmd(); return;"
         insertafter: '^\s+checked_command: function\(orig_cmd\) {$'
         firstmatch: yes
         backup: yes
