@@ -24,13 +24,8 @@
 # Install an NTP service to synchronize time
 - name: DEB 12 - Ensure systemd-timesyncd is installed
   package:
-    name: systemd-timesyncd
+    name: chrony
     state: present
-
-- name: DEB12 Ensure systemd-timesyncd is running
-  ansible.builtin.systemd_service:
-    state: started
-    name: systemd-timesyncd
 
 - name: DEB12 - Remove dependencies that are no longer required
   ansible.builtin.apt:

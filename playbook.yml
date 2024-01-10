@@ -21,4 +21,4 @@
   #   - ansible.builtin.setup:
 
   roles:
-    - { role: hetzner_pve }
+  #  - { role: hetzner_pve }

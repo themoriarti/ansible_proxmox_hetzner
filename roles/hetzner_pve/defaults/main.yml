@@ -153,3 +153,4 @@ hetzner_pve_cloud_images:
     memory: 2048
     bridge: "{{ hetzner_pve_opnsense_vm_settings.lan_bridge }}"
     storage: local
+  # ADD IN DEBIAN FOR MAILCOW INSTALLATION
