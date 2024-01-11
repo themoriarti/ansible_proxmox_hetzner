@@ -1,0 +1,21 @@
+---
+# defaults file for zfs_filesystem
+# quick and dirty role to set up
+zfs_filesystem_install_pool: false
+zfs_filesystem_pool_name: ""
+zfs_filesystem_pool_mode: ""
+zfs_filesystem_pool_devices: ""
+zfs_filesystem_pool_options:
+  - "-o ashift=12"
+  - "-o autotrim=on"
+  - "-o cachefile=/etc/zpool.cache"
+  - "-O acltype=posixacl"
+  - "-O compression=lz4"
+  - "-O dnodesize=auto"
+  - "-O relatime=on"
+  - "-O xattr=sa"
+  - "-O normalization=formD"
+zfs_filesystem_pool_state: present
+
+zfs_filesystem_filesystems:
+  - ""

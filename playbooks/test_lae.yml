@@ -1,9 +1,33 @@
+---
+# Playbook to test zfs_filesystem and lae.proxmox roles
+
 - name: "Temporary playbook for testing lae.proxmox role"
   hosts: pve
   user: root
   gather_facts: true
   # Most variables should come from the group_vars/pve/01 vars.yml file
   tasks:
+    - name: Set up zpool tank and vm-drives
+      ansible.builtin.include_role:
+        name: zfs_filesystem
+      vars:
+        zfs_filesystem_install_pool: true
+        zfs_filesystem_pool_name: tank
+        zfs_filesystem_pool_mode: mirror
+        zfs_filesystem_pool_devices: "{{ hostvars[inventory_hostname].zfs_tank_devices }}"
+        zfs_filesystem_filesystems:
+          - vm-drives
+
+    - name: Set up zpool rpool and isos and backups
+      ansible.builtin.include_role:
+        name: zfs_filesystem
+      vars:
+        zfs_filesystem_install_pool: false
+        zfs_filesystem_pool_name: rpool
+        zfs_filesystem_filesystems:
+          - isos
+          - backups
+
     - name: Test lae.proxmox
       ansible.builtin.include_role:
         name: lae.proxmox
@@ -14,9 +38,23 @@
         - pve_storages:
             - name: vm-drives
               type: dir
-              content: ["images"]
+              content: ["images", "rootdir"]
               path: /tank/vm-drives
             - name: backups
               type: dir
-              content: ["backups"]
+              content: ["backup"]
               path: /rpool/backups
+            - name: "isos"
+              type: dir
+              content: ["snippets", "vztmpl", "iso"]
+              path: /rpool/isos
+
+    - name: Create a snapshot of rpool
+      community.general.zfs:
+        name: rpool/ROOT/proxmox@install
+        state: present
+
+    - name: Create a snapshot of bpool
+      community.general.zfs:
+        name: bpool/BOOT/proxmox@install
+        state: present
