@@ -1,0 +1,28 @@
+## {{ ansible_managed }}
+
+auto lo
+iface lo inet loopback
+iface lo inet6 loopback
+
+auto {{ ansible_default_ipv4.interface }}
+iface {{ ansible_default_ipv4.interface }} inet static
+  address {{ ansible_default_ipv4.address }}
+  netmask {{ ansible_default_ipv4.netmask }}
+  gateway {{ ansible_default_ipv4.gateway }}
+  up route add -net {{ ansible_default_ipv4.network }} netmask {{ ansible_default_ipv4.netmask }} gw {{ ansible_default_ipv4.gateway }} dev {{ ansible_default_ipv4.interface }}
+
+iface {{ ansible_default_ipv6.interface }} inet6 static
+  address {{ ansible_default_ipv6.address }}
+  netmask {{ ansible_default_ipv6.prefix }}
+  gateway {{ ansible_default_ipv6.gateway }}
+
+
+auto vmbr0
+iface vmbr0 inet static
+  address {{ ansible_default_ipv4.address }}
+  netmask {{ ansible_default_ipv4.netmask }}
+  bridge_ports none
+  bridge_stp off
+  bridge_fd 0
+#  up route add <ip1>/32 dev vmbr0
+#  up route add <ip2>/32 dev vmbr0

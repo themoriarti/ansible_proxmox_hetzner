@@ -32,7 +32,9 @@
 
 - name: Create ZFS file systems
   community.general.zfs:
-    name: "{{ zfs_filesystem_pool_name }}/{{ item }}"
+    name: "{{ zfs_filesystem_pool_name }}/{{ item.name }}"
+    extra_zfs_properties:
+      mountpoint: "{{ item.mountpath }}"
     state: present
   with_items: "{{ zfs_filesystem_filesystems }}"
   tags: storage

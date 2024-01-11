@@ -17,5 +17,4 @@ zfs_filesystem_pool_options:
   - "-O normalization=formD"
 zfs_filesystem_pool_state: present
 
-zfs_filesystem_filesystems:
-  - ""
+zfs_filesystem_filesystems: []
