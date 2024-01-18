@@ -34,9 +34,9 @@ iface vmbr0 inet static
 #  VM bridge
 ###
 auto {{ vm_bridge_name }}
-iface {{ vm_bridge_name }} inet # dhcp
+iface {{ vm_bridge_name }} inet static
   address {{ vm_network_lan_ip }}/{{ vm_network_lan_subnet }}
-  bridge-ports 
+  bridge-ports none
   bridge-stp off
   bridge-fd 0
   bridge_maxwait 0

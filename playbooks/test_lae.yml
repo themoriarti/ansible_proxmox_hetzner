@@ -26,7 +26,7 @@
         bridge: "{{ vm_bridge_name }}"
         storage: vm-drives
     vm_debian_images:
-       - id: 9501
+      - id: 9501
         name: bokworm
         username: debian
         url: https://cdimage.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2
@@ -167,7 +167,6 @@
         path: "/tmp/{{ item.name }}.qcow2"
         state: absent
       with_items: "{{ vm_debian_images }}"
-
 # Think need to use proxmox to get it put in the right place
 # - name: Upload isos
 #   ansible.builtin.get_url:
