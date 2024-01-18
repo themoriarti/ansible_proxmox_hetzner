@@ -10,6 +10,11 @@
       ignore_errors: true
       changed_when: false
 
+    # NOW CHECK IF POOL WITH SAME NAME WAITING FOR IMPORT
+    # NOT CLEAR HOW TO DO THIS, SO SCRIPT CURRENTLY CRASHES
+    # OUT. PERHAPS A VARIABLE FLAG TO FORCE EXISTING POOL
+    # OVERWRITE?
+
     - name: Create ZFS pool
       ansible.builtin.command: >-
         zpool create
@@ -20,7 +25,6 @@
       when:
         - zfs_filesystem_pool_state | default('present') == 'present'
         - result_pool_list.rc == 1
-      changed_when: my_output.rc != 0
 
     - name: Import created pool
       ansible.builtin.command: >-
@@ -28,7 +32,6 @@
       when:
         - zfs_filesystem_pool_state | default('present') == 'present'
         - result_pool_list.rc == 1
-      changed_when: my_output.rc != 0
 
 - name: Create ZFS file systems
   community.general.zfs:

@@ -1,5 +1,7 @@
 # Role Name
 
+DON'T USE THIS - FOUND LAE.PROXMOX WHICH HANDLES STORAGE AND VMs PROPERLY
+
 Install PROXMOX on a Debian 12 Bookworm server
 
 ## Requirements

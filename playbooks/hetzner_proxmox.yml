@@ -4,6 +4,8 @@
   user: root
   gather_facts: false
 
+  # DO NOT USE THIS - FOUND A BETTER ROLE FOR PROXMOX LAE.PROXMOX
+
   tasks:
     # - name: Secure server with fail2ban
     #   ansible.builtin.include_role:
@@ -20,9 +22,9 @@
     #       - ::1
     #       - 95.141.18.213 # G Network IP address
 
-    - name: Gather server information
-      ansible.builtin.setup:
+    # - name: Gather server information
+    #   ansible.builtin.setup:
 
-    - name: Install PROXMOX
-      ansible.builtin.include_role:
-        name: "proxmox_install"
+    # - name: Install PROXMOX
+    #   ansible.builtin.include_role:
+    #     name: "proxmox_install"

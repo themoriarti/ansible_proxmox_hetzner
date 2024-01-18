@@ -1,4 +1,4 @@
-## {{ ansible_managed }}
+{{ ansible_managed | comment }}
 
 auto lo
 iface lo inet loopback
@@ -17,6 +17,7 @@ iface {{ ansible_default_ipv6.interface }} inet6 static
   gateway {{ ansible_default_ipv6.gateway }}
 
 
+# Bridge for any IP4 addresses
 auto vmbr0
 iface vmbr0 inet static
   address {{ ansible_default_ipv4.address }}
@@ -24,5 +25,26 @@ iface vmbr0 inet static
   bridge_ports none
   bridge_stp off
   bridge_fd 0
+# Bridge for any IP4 addresses
+
 #  up route add <ip1>/32 dev vmbr0
 #  up route add <ip2>/32 dev vmbr0
+
+###
+#  VM bridge
+###
+auto {{ vm_bridge_name }}
+iface {{ vm_bridge_name }} inet # dhcp
+  address {{ vm_network_lan_ip }}/{{ vm_network_lan_subnet }}
+  bridge-ports 
+  bridge-stp off
+  bridge-fd 0
+  bridge_maxwait 0
+  post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+  post-up   iptables -t nat -A POSTROUTING -s '10.0.0.1/24' -o {{ ansible_default_ipv4.interface }} -j MASQUERADE
+  post-down iptables -t nat -D POSTROUTING -s '10.0.0.1/24' -o {{ ansible_default_ipv4.interface }} -j MASQUERADE
+# Bridge for any internal servers
+
+
+
+source /etc/network/interfaces.d/*
