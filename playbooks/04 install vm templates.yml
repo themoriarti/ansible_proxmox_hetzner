@@ -1,0 +1,83 @@
+---
+# Playbook to test zfs_filesystem and lae.proxmox roles
+
+- name: "Install templates for debian and ubuntu"
+  hosts: pve
+  user: root
+  gather_facts: true
+
+  vars:
+    pve_group: pve
+    vm_bridge_name: vmbr50
+
+    vm_ubuntu_images:
+      - id: 9001
+        name: jammy
+        username: ubuntu
+        url: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+        memory: 2048
+        bridge: "{{ vm_bridge_name }}"
+        storage: vm-drives
+    vm_debian_images:
+      - id: 9501
+        name: bokworm
+        username: debian
+        url: https://cdimage.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2
+        memory: 2048
+        bridge: "{{ vm_bridge_name }}"
+        storage: vm-drives
+
+  tasks:
+    - name: Cloudimages - Download ubuntu cloudimages
+      ansible.builtin.get_url:
+        url: "{{ item.url }}"
+        dest: "/tmp/{{ item.name }}.img"
+        mode: "0644"
+      with_items: "{{ vm_ubuntu_images }}"
+
+    - name: Cloudimages - Download debian cloudimages
+      ansible.builtin.get_url:
+        url: "{{ item.url }}"
+        dest: "/tmp/{{ item.name }}.qcow2"
+        mode: "0644"
+      with_items: "{{ vm_debian_images }}"
+
+    - name: Ubuntu cloudimages - Creating cloud-init templates
+      ansible.builtin.shell: |
+        qm destroy {{ item.id }}
+        virt-customize -a /tmp/{{ item.name }}.img --install qemu-guest-agent
+        qm create {{ item.id }} --memory {{ item.memory }} --net0 virtio,bridge={{ item.bridge }}
+        qm importdisk {{ item.id }} /tmp/{{ item.name }}.img {{ item.storage }}
+        qm set {{ item.id }} --scsihw virtio-scsi-pci --scsi0 {{ item.storage }}:{{ item.id }}/vm-{{ item.id }}-disk-0.raw
+        qm set {{ item.id }} --ide2 {{ item.storage }}:cloudinit
+        qm set {{ item.id }} --boot c --bootdisk scsi0
+        qm set {{ item.id }} --serial0 socket --vga serial0
+        qm template {{ item.id }}
+        qm set {{ item.id }} --name template.{{ item.name }} --agent 1 --ipconfig0 ip=dhcp --sshkey /root/.ssh/authorized_keys --ciuser {{ item.username }}
+      with_items: "{{ vm_ubuntu_images }}"
+
+    - name: Debian cloudimages - Creating cloud-init templates
+      ansible.builtin.shell: |
+        qm destroy {{ item.id }}
+        virt-customize -a /tmp/{{ item.name }}.qcow2 --install qemu-guest-agent
+        qm create {{ item.id }} --memory {{ item.memory }} --net0 virtio,bridge={{ item.bridge }}
+        qm importdisk {{ item.id }} /tmp/{{ item.name }}.qcow2 {{ item.storage }} -format qcow2
+        qm set {{ item.id }} --scsihw virtio-scsi-pci --scsi0 {{ item.storage }}:{{ item.id }}/vm-{{ item.id }}-disk-0.qcow2
+        qm set {{ item.id }} --ide2 {{ item.storage }}:cloudinit
+        qm set {{ item.id }} --boot c --bootdisk scsi0
+        qm set {{ item.id }} --serial0 socket --vga serial0
+        qm template {{ item.id }}
+        qm set {{ item.id }} --name template.{{ item.name }} --agent 1 --ipconfig0 ip=dhcp --sshkey /root/.ssh/authorized_keys --ciuser {{ item.username }}
+      with_items: "{{ vm_debian_images }}"
+
+    - name: Ubuntu cloudimages - Removing downloaded files
+      ansible.builtin.file:
+        path: "/tmp/{{ item.name }}.img"
+        state: absent
+      with_items: "{{ vm_ubuntu_images }}"
+
+    - name: Debian cloudimages - Removing downloaded files
+      ansible.builtin.file:
+        path: "/tmp/{{ item.name }}.qcow2"
+        state: absent
+      with_items: "{{ vm_debian_images }}"
