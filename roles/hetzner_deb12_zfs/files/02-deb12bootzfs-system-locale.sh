@@ -103,7 +103,8 @@ CONF'
 
 chroot_execute "dpkg-reconfigure locales -f noninteractive"
 echo -e "LC_ALL=en_US.UTF-8\nLANG=en_US.UTF-8\n" >> "$c_zfs_mount_dir/etc/environment"
-chroot_execute "apt install -qq --yes keyboard-configuration console-setup"
+#chroot_execute "apt install -y screen"
+chroot_execute "DEBIAN_FRONTEND=noninteractive apt install -qq --yes keyboard-configuration console-setup" # whiptail stuck problem
 chroot_execute "dpkg-reconfigure keyboard-configuration -f noninteractive"
 chroot_execute "dpkg-reconfigure console-setup -f noninteractive"
 chroot_execute "setupcon"

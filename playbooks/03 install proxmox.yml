@@ -9,7 +9,7 @@
   # Most variables should come from the group_vars/pve/01 vars.yml file
   vars:
     pve_group: pve
-    interfaces_template: "~/ansible/roles/lae.proxmox/templates/interfaces-{{ pve_group }}.j2"
+    interfaces_template: "~/repo/ansible_proxmox_hetzner/roles/lae.proxmox/templates/interfaces-{{ pve_group }}.j2"
     # Bridge for VMs
     vm_bridge_name: vmbr50
     vm_network_lan_subnet: "24"
@@ -25,7 +25,7 @@
       ansible.builtin.include_role:
         name: zfs_filesystem
       vars:
-        zfs_filesystem_install_pool: true
+        zfs_filesystem_install_pool: false
         zfs_filesystem_pool_name: tank
         zfs_filesystem_pool_mode: mirror
         zfs_filesystem_pool_devices: "{{ hostvars[inventory_hostname].zfs_tank_devices }}"

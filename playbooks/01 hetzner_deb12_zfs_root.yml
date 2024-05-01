@@ -22,7 +22,7 @@
         fail2ban_ignoreips:
           - 127.0.0.1/8
           - ::1
-          - 95.141.18.213 # G Network IP address
+          #- 95.141.18.213 # G Network IP address
 
     - name: Gather server information for MOTD
       ansible.builtin.setup:
