@@ -1,7 +1,7 @@
 # Hosted on Hetzner
 
 # Required for Hetzner API - e.g. for forcing into rescue mode or pressing reset button
-ENV_INVENTORY_SRV_NO: 2364076
+ENV_INVENTORY_SRV_NO: 2342762
 
 # Drive information required for when rebuilding the server with zfs
 # Drive information tracked as drives can be assigned sda etc. randomly on reboot
@@ -12,5 +12,5 @@ ENV_INVENTORY_SRV_NO: 2364076
 #zfs_tank_devices: ["/dev/disk/by-id/ata-TOSHIBA_MG04ACA200EY_286IK0ATF7QB", "/dev/disk/by-id/ata-WDC_WD2000FYYZ-01UL1B2_WD-WMC1P0E2PN12"]
 # If want to use imageinstaller to set up machine then need to force into rescue mode
 # and note the relevant nvme drives for monitoring and then passing into relevant script
-zfs_root_devices: ["/dev/disk/by-id/ata-Micron_5100_MTFDDAK480TBY_1728192448E7", "/dev/disk/by-id/ata-Micron_5100_MTFDDAK480TBY_172819244911"]
-zfs_tank_devices: ["/dev/disk/by-id/ata-HGST_HUS726020ALE610_K5HMXK8D", "/dev/disk/by-id/ata-HGST_HUS726020ALE610_K5HMXJDD"]
+zfs_root_devices: ["/dev/disk/by-id/ata-SAMSUNG_MZ7LM240HCGR-00003_S1YFNXAG806191", "/dev/disk/by-id/ata-SAMSUNG_MZ7WD240HAFV-00003_S16LNYADB01601"]
+zfs_tank_devices: ["/dev/disk/by-id/ata-ST4000NM0024-1HT178_Z4F04JK7", "/dev/disk/by-id/ata-ST4000NM0024-1HT178_Z4F05ASP"]

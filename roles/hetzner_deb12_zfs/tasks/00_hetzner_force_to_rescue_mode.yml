@@ -1,5 +1,4 @@
 # tasks file
----
 - name: Check for SSH Key - if not - create a new key
   community.crypto.openssh_keypair:
     path: "~/.ssh/id_ed25519_ansible"
@@ -11,8 +10,8 @@
 - name: Set public key
   ansible.legacy.set_fact:
     hetzner_api_ssh_keys:
-      - "{{ lookup('file', '~/.ssh/id_ed25519_ansible.pub') }}"
-  #when: hetzner_api_ssh_keys is defined and (hetzner_api_ssh_keys | length==0)
+    - "{{ lookup('file', '~/.ssh/id_ed25519_ansible.pub') }}"
+    #when: hetzner_api_ssh_keys is defined and (hetzner_api_ssh_keys | length==0)
 
 - name: HETZNER - Add SSH key
   community.hrobot.ssh_key:
@@ -57,12 +56,8 @@
   ignore_errors: True
 
 - name: LOCAL - Pause for a while for the reboot to kick in
-  pause: seconds=30
+  pause: seconds=120
 
 - name: HETZNER - Waiting for server to come back
   local_action:
-    module: wait_for
-      host={{ inventory_hostname }}
-      port=22
-      delay=1
-      timeout=120
+    module: wait_for host={{ inventory_hostname }} port=22 delay=1 timeout=300

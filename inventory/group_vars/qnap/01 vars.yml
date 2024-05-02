@@ -1,7 +1,0 @@
----
-ansible_python_interpreter: "/opt/bin/python3"
-ansible_user: "russ"
-ansible_become_user: "admin"
-ansible_become_method: "sudo"
-nas1288x_become_pass: "{{ vault_nas1288x_become_pass }}"
-nas1282_become_pass: "{{ vault_nas1282_become_pass }}"

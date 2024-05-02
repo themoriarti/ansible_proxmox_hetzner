@@ -1,15 +1,15 @@
 [linode]
-#poip.co.uk
 
 [qnap]
-#nas1288x.localdomain
-#nas1282.norfolk
 
 [hetzner]
-prox1.cp.if.ua    ansible_host=136.243.50.173 
+prox1.cp.if.ua    ansible_host=195.201.84.126
+prox2.cp.if.ua    ansible_host=136.243.73.211
 
 [rebuild_hetzner_deb12_zfs]
-prox1.cp.if.ua    ansible_host=136.243.50.173
+prox1.cp.if.ua    ansible_host=195.201.84.126
+prox2.cp.if.ua    ansible_host=136.243.73.211
 
 [pve]
-prox1.cp.if.ua    ansible_host=136.243.50.173
+prox1.cp.if.ua    ansible_host=195.201.84.126
+prox2.cp.if.ua    ansible_host=136.243.73.211

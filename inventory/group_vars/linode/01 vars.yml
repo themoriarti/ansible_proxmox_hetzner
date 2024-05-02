@@ -1,4 +1,0 @@
----
-ansible_user: "forge"
-linode_root_password: "{{ vault_linode_root_password }}"
-linode_api_token: "{{ vault_linode_api_token }}"

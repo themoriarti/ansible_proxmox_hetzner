@@ -25,7 +25,7 @@
       ansible.builtin.include_role:
         name: zfs_filesystem
       vars:
-        zfs_filesystem_install_pool: false
+        zfs_filesystem_install_pool: true
         zfs_filesystem_pool_name: tank
         zfs_filesystem_pool_mode: mirror
         zfs_filesystem_pool_devices: "{{ hostvars[inventory_hostname].zfs_tank_devices }}"
