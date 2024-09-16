@@ -1,0 +1,3 @@
+[submodule "roles/lae.proxmox"]
+	path = roles/lae.proxmox
+	url = git@github.com:themoriarti/ansible-role-proxmox.git
