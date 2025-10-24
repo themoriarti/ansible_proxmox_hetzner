@@ -1,7 +1,7 @@
 # Hosted on Hetzner
 
 # Required for Hetzner API - e.g. for forcing into rescue mode or pressing reset button
-ENV_INVENTORY_SRV_NO: 2342762
+ENV_INVENTORY_SRV_NO: 2302631
 
 # Drive information required for when rebuilding the server with zfs
 # Drive information tracked as drives can be assigned sda etc. randomly on reboot

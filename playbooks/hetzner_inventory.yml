@@ -10,9 +10,34 @@
       delegate_to: localhost
       run_once: true
 
-    - name: Show results
-      ansible.builtin.debug:
-        msg:
-          - "Server 1:  {{ result.servers[0].server_number }} - {{ result.servers[0].server_name }}"
-          - "Server 2:  {{ result.servers[1].server_number }} - {{ result.servers[1].server_name }}"
-      run_once: true
+#    - name: Show server name if it is 'prox1'
+#      ansible.builtin.debug:
+#        msg: "Server 1:  {{ result.servers[0].server_number }} - {{ result.servers[0].server_name }}"
+#      when: result.servers[0].server_name == 'prox1'
+
+    - name: Update server number in host_vars for 'prox1'
+      ansible.builtin.lineinfile:
+        path: inventory/host_vars/prox1.yml
+        regexp: '^server_number:.*$'
+        line: "ENV_INVENTORY_SRV_NO: {{ item.server_number }}"
+        create: yes
+      loop: "{{ result.servers }}"
+      when: item.server_name == 'prox1'
+
+#    - name: Check if 'prox1' server exists and update host_vars
+#      block:
+#        - name: Update server number in host_vars for 'prox1'
+#          ansible.builtin.lineinfile:
+#            path: inventory/host_vars/prox1.cp.if.ua.yml
+#            regexp: '^server_number:.*$'
+#            line: "ENV_INVENTORY_SRV_NO: {{ item.server_number }}"
+#            create: yes
+#      loop: "{{ result.servers }}"
+#      when: item.server_name == 'prox1'
+
+#    - name: Show results
+#      ansible.builtin.debug:
+#        msg:
+#          - "Server 1:  {{ result.servers[0].server_number }} - {{ result.servers[0].server_name }}"
+#          - "Server 2:  {{ result.servers[1].server_number }} - {{ result.servers[1].server_name }}"
+#      run_once: true

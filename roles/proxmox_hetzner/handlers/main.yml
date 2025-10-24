@@ -1,0 +1,37 @@
+---
+# Handlers for Proxmox Hetzner role
+
+- name: restart ssh
+  ansible.builtin.systemd:
+    name: ssh
+    state: restarted
+
+- name: restart networking
+  ansible.builtin.systemd:
+    name: networking
+    state: restarted
+
+- name: restart rsyslog
+  ansible.builtin.systemd:
+    name: rsyslog
+    state: restarted
+
+- name: restart proxmox services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - pve-cluster
+    - pve-daemon
+    - pveproxy
+    - pvedaemon
+    - pvestatd
+
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: restart dnsmasq
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: restarted

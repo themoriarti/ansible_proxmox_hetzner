@@ -1,0 +1,197 @@
+---
+# Main playbook for Proxmox setup on Hetzner servers
+# Uses the new proxmox_hetzner role with automatic disk detection
+
+- name: "Setup Proxmox on Hetzner servers"
+  hosts: pve
+  user: root
+  gather_facts: true
+  vars_files:
+    - ../inventory/group_vars/pve/01 vars.yml
+    - ../inventory/group_vars/pve/20_vault.yml
+
+  vars:
+    # Proxmox configuration
+    proxmox_version: "8"
+    proxmox_repository: "deb [arch=amd64] http://mirror.hetzner.com/debian/pve {{ ansible_facts.distribution_release }} pve-no-subscription"
+    proxmox_reboot_on_kernel_update: true
+    proxmox_run_system_upgrades: true
+
+    # Network configuration
+    proxmox_network:
+      vm_bridge_name: "vmbr50"
+      vm_network_lan_subnet: "24"
+      vm_network_lan_ip: "10.0.0.1"
+      vm_network_vm_lan_ip: "10.0.0.254"
+      vm_network_vm_lan_dhcp_from: "10.0.0.50"
+      vm_network_vm_lan_dhcp_to: "10.0.0.150"
+      enable_dhcp: false
+
+    # Storage configuration
+    proxmox_storage:
+      enable_zfs: true
+      zfs_pool_name: "rpool"
+      zfs_datasets:
+        - name: "isos"
+          mountpath: "/isos"
+        - name: "backups"
+          mountpath: "/backups"
+        - name: "vm-drives"
+          mountpath: "/vm-drives"
+
+    # Proxmox users and groups
+    proxmox_users:
+      - name: "root@pam"
+        email: "postmaster@{{ ansible_facts.fqdn }}"
+      - name: "admin@pam"
+        email: "admin@{{ ansible_facts.fqdn }}"
+        firstname: "Admin"
+        lastname: "User"
+        groups: ["Admins"]
+
+    proxmox_groups:
+      - name: "Admins"
+        comment: "Administrators of this PVE cluster"
+      - name: "api_users"
+        comment: "API users for automation"
+
+    # Proxmox storages
+    proxmox_storages:
+      - name: "backups"
+        type: "dir"
+        content: ["backup"]
+        path: "/backups"
+      - name: "isos"
+        type: "dir"
+        content: ["snippets", "vztmpl", "iso"]
+        path: "/isos"
+      - name: "vm-drives"
+        type: "dir"
+        content: ["images", "rootdir"]
+        path: "/vm-drives"
+
+    # Cluster configuration
+    proxmox_cluster_enabled: "{{ pve_cluster_enabled | default(false) }}"
+    proxmox_cluster_name: "{{ pve_group | default('pve-cluster') }}"
+    proxmox_datacenter_cfg:
+      console: "{{ pve_datacenter_cfg.console | default('xtermjs') }}"
+
+    # Disk detection settings
+    disk_detection:
+      min_disk_size_gb: 10
+      exclude_patterns:
+        - "loop*"
+        - "ram*"
+        - "sr*"
+        - "fd*"
+
+    # Hetzner specific settings
+    hetzner_settings:
+      enable_rescue_mode: false  # Set to true for initial server setup
+      enable_installimage: false  # Set to true for initial server setup
+      os_version: "bookworm"
+
+    # Packages to install
+    proxmox_packages:
+      - "bridge-utils"
+      - "libguestfs-tools"
+      - "zfsutils-linux"
+      - "htop"
+      - "iotop"
+      - "tcpdump"
+      - "git"
+      - "nano"
+      - "screen"
+      - "ufw"
+      - "iptables-persistent"
+
+    # Testing and monitoring flags
+    require_reboot: false
+    enable_monitoring: true
+    enable_auto_updates: false
+
+  tasks:
+    - name: "Display system information"
+      ansible.builtin.debug:
+        msg:
+          - "Hostname: {{ inventory_hostname }}"
+          - "OS: {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}"
+          - "Architecture: {{ ansible_facts.architecture }}"
+          - "Memory: {{ ansible_facts.memtotal_mb }}MB"
+          - "CPU: {{ ansible_facts.processor_vcpus }} cores"
+          - "Default IP: {{ ansible_facts.default_ipv4.address }}"
+
+    - name: "Install and configure Proxmox using proxmox_hetzner role"
+      ansible.builtin.include_role:
+        name: proxmox_hetzner
+      tags: [proxmox_hetzner]
+
+    - name: "Verify Proxmox installation"
+      ansible.builtin.uri:
+        url: "https://{{ ansible_facts.default_ipv4.address }}:8006"
+        method: GET
+        validate_certs: false
+        status_code: 200
+      register: proxmox_web_check
+      ignore_errors: true
+
+    - name: "Display Proxmox web interface status"
+      ansible.builtin.debug:
+        msg: "Proxmox web interface accessible: {{ proxmox_web_check.status | default('No response') }}"
+
+    - name: "Check Proxmox services status"
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+      register: proxmox_services
+      loop:
+        - pve-cluster
+        - pve-daemon
+        - pveproxy
+        - pvedaemon
+        - pvestatd
+
+    - name: "Display Proxmox services status"
+      ansible.builtin.debug:
+        msg: "Service {{ item.item }}: {{ item.status.ActiveState }}"
+      loop: "{{ proxmox_services.results }}"
+
+    - name: "Check ZFS pools"
+      ansible.builtin.shell: zpool list
+      register: zfs_pools
+      ignore_errors: true
+
+    - name: "Display ZFS pools"
+      ansible.builtin.debug:
+        msg: "{{ zfs_pools.stdout_lines }}"
+      when: zfs_pools.stdout_lines is defined
+
+    - name: "Check storage directories"
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: storage_dirs
+      loop:
+        - "/isos"
+        - "/backups"
+        - "/vm-drives"
+
+    - name: "Display storage directories status"
+      ansible.builtin.debug:
+        msg: "Directory {{ item.item }}: {{ 'exists' if item.stat.exists else 'missing' }}"
+      loop: "{{ storage_dirs.results }}"
+
+    - name: "Create final snapshot"
+      community.general.zfs:
+        name: "{{ proxmox_storage.zfs_pool_name }}/ROOT/debian@proxmox_final"
+        state: present
+      when: 
+        - proxmox_storage.enable_zfs | default(true)
+        - proxmox_web_check.status is defined
+
+    - name: "Display completion message"
+      ansible.builtin.debug:
+        msg:
+          - "Proxmox installation completed successfully!"
+          - "Web interface: https://{{ ansible_facts.default_ipv4.address }}:8006"
+          - "Username: root@pam"
+          - "Password: [from vault file]"
+          - "Health check script: /usr/local/bin/proxmox-health-check.sh"

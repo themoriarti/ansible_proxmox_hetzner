@@ -58,22 +58,22 @@ pve_users:
   email: tempuser@pve.example
   firstname: Test
   lastname: User
-pve_acls: # This should generate 3 different ACLs (note that this is count should be modified in tests/test.yml if this var is changed)
-- path: /
-  roles: ["Administrator"]
-  groups: ["Admins"]
-- path: /tank
-  roles: ["PVEAdmin"]
-  users:
-  - pveapi@pve
-  groups:
-  - test_users
-pve_storages: # This should create 2 different storages.
-- name: dir1
-  type: dir
-  content: ["images", "iso", "backup"]
-  path: /backups
-  maxfiles: 4
+#pve_acls: # This should generate 3 different ACLs (note that this is count should be modified in tests/test.yml if this var is changed)
+#- path: /
+#  roles: ["Administrator"]
+#  groups: ["Admins"]
+#- path: /tank
+#  roles: ["PVEAdmin"]
+#  users:
+#  - pveapi@pve
+#  groups:
+#  - test_users
+#pve_storages: # This should create 2 different storages.
+#- name: dir1
+#  type: dir
+#  content: ["images", "iso", "backup"]
+#  path: /backups
+#  maxfiles: 4
 #- name: ceph1
 #  type: rbd
 #  content: ["images", "rootdir"]

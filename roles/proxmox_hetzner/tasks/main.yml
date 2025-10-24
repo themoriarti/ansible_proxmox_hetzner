@@ -1,0 +1,30 @@
+---
+# Main tasks for Proxmox Hetzner role
+
+- name: Include disk detection tasks
+  ansible.builtin.include_tasks: disk_detection.yml
+  tags: [disk_detection]
+
+- name: Include system preparation tasks
+  ansible.builtin.include_tasks: system_preparation.yml
+  tags: [system_preparation]
+
+- name: Include Proxmox installation tasks
+  ansible.builtin.include_tasks: proxmox_installation.yml
+  tags: [proxmox_installation]
+
+- name: Include storage setup tasks
+  ansible.builtin.include_tasks: storage_setup.yml
+  tags: [storage_setup]
+
+- name: Include network configuration tasks
+  ansible.builtin.include_tasks: network_configuration.yml
+  tags: [network_configuration]
+
+- name: Include Proxmox configuration tasks
+  ansible.builtin.include_tasks: proxmox_configuration.yml
+  tags: [proxmox_configuration]
+
+- name: Include post-installation tasks
+  ansible.builtin.include_tasks: post_installation.yml
+  tags: [post_installation]

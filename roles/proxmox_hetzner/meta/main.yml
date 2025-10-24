@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: Atlasix Tech
+  description: Ansible role for Proxmox setup on Hetzner servers with automatic disk detection
+  company: Atlasix Tech
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - bullseye
+  galaxy_tags:
+    - proxmox
+    - hetzner
+    - virtualization
+    - zfs
+    - storage
+
+dependencies: []

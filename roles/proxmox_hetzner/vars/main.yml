@@ -1,0 +1,17 @@
+---
+# Variables for Proxmox Hetzner role
+
+# Hetzner specific paths
+hetzner_installimage_path: "/root/.oldroot/nfs/install"
+hetzner_config_path: "/root/setup.conf"
+
+# Proxmox specific paths
+proxmox_config_dir: "/etc/pve"
+proxmox_log_dir: "/var/log/pve"
+
+# ZFS specific settings
+zfs_settings:
+  compression: "lz4"
+  atime: "off"
+  sync: "standard"
+  checksum: "on"

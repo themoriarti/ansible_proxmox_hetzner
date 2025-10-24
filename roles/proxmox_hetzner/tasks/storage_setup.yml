@@ -1,0 +1,81 @@
+---
+# Storage setup tasks
+
+- name: Install ZFS utilities
+  ansible.builtin.apt:
+    name:
+      - zfsutils-linux
+      - zfs-initramfs
+    state: present
+  when: proxmox_storage.enable_zfs | default(true)
+  tags: [storage_setup]
+
+- name: Create ZFS pool
+  community.general.zfs:
+    name: "{{ zfs_pool_config.pool_name }}"
+    state: present
+    pool_type: "{{ zfs_pool_config.raid_level }}"
+    devices: "{{ zfs_pool_config.disks | map('regex_replace', '^', '/dev/') | list }}"
+    properties:
+      compression: "{{ zfs_settings.compression }}"
+      atime: "{{ zfs_settings.atime }}"
+      sync: "{{ zfs_settings.sync }}"
+      checksum: "{{ zfs_settings.checksum }}"
+  when: 
+    - proxmox_storage.enable_zfs | default(true)
+    - zfs_pool_config.disks | length > 0
+  tags: [storage_setup]
+
+- name: Create ZFS datasets
+  community.general.zfs:
+    name: "{{ zfs_pool_config.pool_name }}/{{ item.name }}"
+    state: present
+    properties:
+      mountpoint: "{{ item.mountpath }}"
+      compression: "{{ zfs_settings.compression }}"
+  loop: "{{ proxmox_storage.zfs_datasets }}"
+  when: proxmox_storage.enable_zfs | default(true)
+  tags: [storage_setup]
+
+- name: Mount ZFS datasets
+  ansible.builtin.mount:
+    path: "{{ item.mountpath }}"
+    src: "{{ zfs_pool_config.pool_name }}/{{ item.name }}"
+    fstype: zfs
+    opts: "{{ zfs_pool_config.pool_name }}/{{ item.name }}"
+    state: mounted
+  loop: "{{ proxmox_storage.zfs_datasets }}"
+  when: proxmox_storage.enable_zfs | default(true)
+  tags: [storage_setup]
+
+- name: Create storage directories if not using ZFS
+  ansible.builtin.file:
+    path: "{{ item.mountpath }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ proxmox_storage.zfs_datasets }}"
+  when: not (proxmox_storage.enable_zfs | default(true))
+  tags: [storage_setup]
+
+- name: Set proper permissions on storage directories
+  ansible.builtin.file:
+    path: "{{ item.mountpath }}"
+    owner: root
+    group: root
+    mode: '0755'
+  loop: "{{ proxmox_storage.zfs_datasets }}"
+  tags: [storage_setup]
+
+- name: Create ZFS snapshots after setup
+  community.general.zfs:
+    name: "{{ zfs_pool_config.pool_name }}/ROOT/debian@proxmox_install"
+    state: present
+  when: proxmox_storage.enable_zfs | default(true)
+  tags: [storage_setup]
+
+- name: Create boot pool snapshot
+  community.general.zfs:
+    name: "bpool/BOOT/debian@proxmox_install"
+    state: present
+  when: proxmox_storage.enable_zfs | default(true)
+  tags: [storage_setup]

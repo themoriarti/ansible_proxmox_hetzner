@@ -1,4 +1,5 @@
-- hosts: vmhost
+---
+- hosts: servers
   user: root
   gather_facts: no
   vars_files:
@@ -10,16 +11,16 @@
       setup:
         gather_subset:
           - hardware
-    # - debug:
-    #     var: ansible_devices.sda.links.ids[0]
-
-    - name: Output disks
       debug:
-        msg:
-          - label "/dev/nvme0n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme0n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme0n1.links.ids[0]}} "
-          - label "/dev/nvme1n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme1n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme1n1.links.ids[0]}} "
-          - label "/dev/nvme2n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme2n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme2n1.links.ids[0]}} "
-          - label "/dev/nvme3n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme3n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme3n1.links.ids[0]}} "
+         var: ansible_devices.sda.links.ids[0]
+
+#    - name: Output disks
+#      debug:
+#        msg:
+#          - label "/dev/nvme0n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme0n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme0n1.links.ids[0]}} "
+#          - label "/dev/nvme1n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme1n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme1n1.links.ids[0]}} "
+#          - label "/dev/nvme2n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme2n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme2n1.links.ids[0]}} "
+#          - label "/dev/nvme3n1 - {{ hostvars[inventory_hostname].ansible_devices.nvme3n1.size}} - {{ hostvars[inventory_hostname].ansible_devices.nvme3n1.links.ids[0]}} "
 # Need to find a way to get the correct sda sdb into the bookwork.conf template automatically
 # For now it is manual
 

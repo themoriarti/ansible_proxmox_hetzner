@@ -1,0 +1,16 @@
+plugin: hrobot
+
+# Credentials can alternatively be provided in `HETZNER_ROBOT_USER` and
+# `HETZNER_ROBOT_PASSWORD` via the environment.
+api_user: "{{ vault_hetzner_api_user }}"
+api_password: "{{ vault_hetzner_api_pass }}"
+
+groups:
+  proxy_hosts: inventory_hostname.startswith("proxy")
+  staging_hosts: inventory_hostname is regex("prox.*")
+
+keyed_groups:
+- key: product | lower
+  prefix: type
+- key: dc
+  separator: ""

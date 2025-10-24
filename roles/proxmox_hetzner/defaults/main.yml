@@ -1,0 +1,93 @@
+---
+# Default variables for Proxmox Hetzner role
+
+# Proxmox configuration
+proxmox_version: "8"
+proxmox_repository: "deb [arch=amd64] http://mirror.hetzner.com/debian/pve {{ ansible_facts.distribution_release }} pve-no-subscription"
+proxmox_reboot_on_kernel_update: true
+proxmox_run_system_upgrades: true
+
+# Network configuration
+proxmox_network:
+  vm_bridge_name: "vmbr50"
+  vm_network_lan_subnet: "24"
+  vm_network_lan_ip: "10.0.0.1"
+  vm_network_vm_lan_ip: "10.0.0.254"
+  vm_network_vm_lan_dhcp_from: "10.0.0.50"
+  vm_network_vm_lan_dhcp_to: "10.0.0.150"
+
+# Storage configuration
+proxmox_storage:
+  enable_zfs: true
+  zfs_pool_name: "rpool"
+  zfs_datasets:
+    - name: "isos"
+      mountpath: "/isos"
+    - name: "backups"
+      mountpath: "/backups"
+    - name: "vm-drives"
+      mountpath: "/vm-drives"
+
+# Proxmox users and groups
+proxmox_users:
+  - name: "root@pam"
+    email: "postmaster@{{ ansible_facts.fqdn }}"
+  - name: "admin@pam"
+    email: "admin@{{ ansible_facts.fqdn }}"
+    firstname: "Admin"
+    lastname: "User"
+    groups: ["Admins"]
+
+proxmox_groups:
+  - name: "Admins"
+    comment: "Administrators of this PVE cluster"
+  - name: "api_users"
+    comment: "API users for automation"
+
+# Proxmox storages
+proxmox_storages:
+  - name: "backups"
+    type: "dir"
+    content: ["backup"]
+    path: "/backups"
+  - name: "isos"
+    type: "dir"
+    content: ["snippets", "vztmpl", "iso"]
+    path: "/isos"
+  - name: "vm-drives"
+    type: "dir"
+    content: ["images", "rootdir"]
+    path: "/vm-drives"
+
+# Cluster configuration
+proxmox_cluster_enabled: true
+proxmox_cluster_name: "pve-cluster"
+proxmox_datacenter_cfg:
+  console: "xtermjs"
+
+# Disk detection settings
+disk_detection:
+  min_disk_size_gb: 10
+  exclude_patterns:
+    - "loop*"
+    - "ram*"
+    - "sr*"
+    - "fd*"
+
+# Hetzner specific settings
+hetzner_settings:
+  enable_rescue_mode: true
+  enable_installimage: true
+  os_version: "bookworm"
+
+# Packages to install
+proxmox_packages:
+  - "bridge-utils"
+  - "libguestfs-tools"
+  - "zfsutils-linux"
+  - "htop"
+  - "iotop"
+  - "tcpdump"
+  - "git"
+  - "nano"
+  - "screen"

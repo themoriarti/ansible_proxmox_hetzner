@@ -11,27 +11,27 @@
     pve_group: pve
     interfaces_template: "~/repo/ansible_proxmox_hetzner/roles/lae.proxmox/templates/interfaces-{{ pve_group }}.j2"
     # Bridge for VMs
-#    vm_bridge_name: vmbr50
-#    vm_network_lan_subnet: "24"
-#    vm_network_lan_ip: "10.0.0.1"
-#    vm_network_vm_lan_ip: "10.0.0.254"
-#    vm_network_vm_lan_dhcp_from: "10.0.0.50"
-#    vm_network_vm_lan_dhcp_to: "10.0.0.150"
+    vm_bridge_name: vmbr50
+    vm_network_lan_subnet: "24"
+    vm_network_lan_ip: "10.0.0.1"
+    vm_network_vm_lan_ip: "10.0.0.254"
+    vm_network_vm_lan_dhcp_from: "10.0.0.50"
+    vm_network_vm_lan_dhcp_to: "10.0.0.150"
 
   # ADD IN DEBIAN FOR MAILCOW INSTALLATION
 
   tasks:
-    - name: Set up zpool tank and vm-drives
-      ansible.builtin.include_role:
-        name: zfs_filesystem
-      vars:
-        zfs_filesystem_install_pool: false
-        zfs_filesystem_pool_name: tank
-        zfs_filesystem_pool_mode: mirror
-        zfs_filesystem_pool_devices: "{{ hostvars[inventory_hostname].zfs_tank_devices }}"
-        zfs_filesystem_filesystems:
-          - name: vm-drives
-            mountpath: "/vm-drives"
+#    - name: Set up zpool tank and vm-drives
+#      ansible.builtin.include_role:
+#        name: zfs_filesystem
+#      vars:
+#        zfs_filesystem_install_pool: false
+#        zfs_filesystem_pool_name: tank
+#        zfs_filesystem_pool_mode: mirror
+#        zfs_filesystem_pool_devices: "{{ hostvars[inventory_hostname].zfs_tank_devices }}"
+#        zfs_filesystem_filesystems:
+#          - name: vm-drives
+#            mountpath: "/vm-drives"
 
     - name: Set up zpool rpool and isos and backups
       ansible.builtin.include_role:
@@ -75,10 +75,10 @@
         - pve_reboot_on_kernel_update: true
         - pve_repository_line: "deb [arch=amd64] http://mirror.hetzner.com/debian/pve {{ ansible_facts.distribution_release }} pve-no-subscription"
         - pve_storages:
-            - name: vm-drives
-              type: dir
-              content: ["images", "rootdir"]
-              path: /tank/vm-drives
+#            - name: vm-drives
+#              type: dir
+#              content: ["images", "rootdir"]
+#              path: /tank/vm-drives
             - name: backups
               type: dir
               content: ["backup"]

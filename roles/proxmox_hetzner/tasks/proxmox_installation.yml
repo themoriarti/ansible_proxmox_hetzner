@@ -1,0 +1,86 @@
+---
+# Proxmox installation tasks
+
+- name: Add Proxmox repository key
+  ansible.builtin.apt_key:
+    url: https://enterprise.proxmox.com/debian/proxmox-release-{{ proxmox_version }}.gpg
+    state: present
+  tags: [proxmox_installation]
+
+- name: Add Proxmox repository
+  ansible.builtin.apt_repository:
+    repo: "{{ proxmox_repository }}"
+    state: present
+    update_cache: true
+  tags: [proxmox_installation]
+
+- name: Install Proxmox VE
+  ansible.builtin.apt:
+    name:
+      - proxmox-ve
+      - postfix
+      - open-iscsi
+    state: present
+  tags: [proxmox_installation]
+
+- name: Remove os-prober (conflicts with Proxmox)
+  ansible.builtin.apt:
+    name: os-prober
+    state: absent
+  tags: [proxmox_installation]
+
+- name: Configure postfix
+  ansible.builtin.debconf:
+    name: postfix
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  loop:
+    - { question: "postfix/main_mailer_type", value: "No configuration", vtype: "select" }
+  tags: [proxmox_installation]
+
+- name: Start and enable Proxmox services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - pve-cluster
+    - pve-daemon
+    - pveproxy
+    - pvedaemon
+    - pvefw-logger
+    - pve-ha-crm
+    - pve-ha-lrm
+    - pve-lxc-syscalld
+    - pveproxy
+    - pvestatd
+    - pve-firewall
+    - pve-ha-manager
+  tags: [proxmox_installation]
+
+- name: Wait for Proxmox services to be ready
+  ansible.builtin.wait_for:
+    port: 8006
+    host: "{{ ansible_facts.default_ipv4.address }}"
+    delay: 10
+    timeout: 300
+  tags: [proxmox_installation]
+
+- name: Configure Proxmox firewall
+  ansible.builtin.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "8006"  # Proxmox web interface
+    - "5900:5999"  # VNC
+    - "3128"  # SPICE
+  tags: [proxmox_installation]
+
+- name: Set Proxmox root password
+  ansible.builtin.user:
+    name: root
+    password: "{{ proxmox_root_password | password_hash('sha512') }}"
+  when: proxmox_root_password is defined
+  tags: [proxmox_installation]

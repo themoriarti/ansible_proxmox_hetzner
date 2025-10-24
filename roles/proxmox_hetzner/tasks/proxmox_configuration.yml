@@ -1,0 +1,115 @@
+---
+# Proxmox configuration tasks
+
+- name: Configure Proxmox datacenter
+  community.general.proxmox:
+    api_user: root@pam
+    api_password: "{{ proxmox_root_password }}"
+    api_host: "{{ ansible_facts.default_ipv4.address }}"
+    vmid: 1
+    state: present
+    datacenter: "{{ inventory_hostname }}"
+    datacenter_config:
+      console: "{{ proxmox_datacenter_cfg.console }}"
+  when: proxmox_root_password is defined
+  tags: [proxmox_configuration]
+
+- name: Create Proxmox groups
+  community.general.proxmox:
+    api_user: root@pam
+    api_password: "{{ proxmox_root_password }}"
+    api_host: "{{ ansible_facts.default_ipv4.address }}"
+    vmid: 1
+    state: present
+    group: "{{ item.name }}"
+    group_config:
+      comment: "{{ item.comment | default('') }}"
+  loop: "{{ proxmox_groups }}"
+  when: proxmox_root_password is defined
+  tags: [proxmox_configuration]
+
+- name: Create Proxmox users
+  community.general.proxmox:
+    api_user: root@pam
+    api_password: "{{ proxmox_root_password }}"
+    api_host: "{{ ansible_facts.default_ipv4.address }}"
+    vmid: 1
+    state: present
+    user: "{{ item.name }}"
+    user_config:
+      email: "{{ item.email | default('') }}"
+      firstname: "{{ item.firstname | default('') }}"
+      lastname: "{{ item.lastname | default('') }}"
+      groups: "{{ item.groups | default([]) | join(',') }}"
+      password: "{{ proxmox_user_passwords[item.name.split('@')[0]] | default('') }}"
+  loop: "{{ proxmox_users }}"
+  when: 
+    - proxmox_root_password is defined
+    - proxmox_user_passwords is defined
+  tags: [proxmox_configuration]
+
+- name: Configure Proxmox storages
+  community.general.proxmox:
+    api_user: root@pam
+    api_password: "{{ proxmox_root_password }}"
+    api_host: "{{ ansible_facts.default_ipv4.address }}"
+    vmid: 1
+    state: present
+    storage: "{{ item.name }}"
+    storage_config:
+      type: "{{ item.type }}"
+      content: "{{ item.content | join(',') }}"
+      path: "{{ item.path }}"
+      maxfiles: "{{ item.maxfiles | default('') }}"
+  loop: "{{ proxmox_storages }}"
+  when: proxmox_root_password is defined
+  tags: [proxmox_configuration]
+
+- name: Configure Proxmox cluster (if enabled)
+  block:
+    - name: Initialize cluster
+      community.general.proxmox:
+        api_user: root@pam
+        api_password: "{{ proxmox_root_password }}"
+        api_host: "{{ ansible_facts.default_ipv4.address }}"
+        vmid: 1
+        state: present
+        cluster: "{{ proxmox_cluster_name }}"
+        cluster_config:
+          nodeid: "{{ inventory_hostname }}"
+      when: proxmox_cluster_enabled | default(false)
+    
+    - name: Join cluster (for additional nodes)
+      community.general.proxmox:
+        api_user: root@pam
+        api_password: "{{ proxmox_root_password }}"
+        api_host: "{{ ansible_facts.default_ipv4.address }}"
+        vmid: 1
+        state: present
+        cluster: "{{ proxmox_cluster_name }}"
+        cluster_config:
+          nodeid: "{{ inventory_hostname }}"
+          join: "{{ cluster_join_node | default('') }}"
+      when: 
+        - proxmox_cluster_enabled | default(false)
+        - cluster_join_node is defined
+  when: proxmox_root_password is defined
+  tags: [proxmox_configuration]
+
+- name: Configure Proxmox firewall
+  community.general.proxmox:
+    api_user: root@pam
+    api_password: "{{ proxmox_root_password }}"
+    api_host: "{{ ansible_facts.default_ipv4.address }}"
+    vmid: 1
+    state: present
+    firewall: "{{ item.name }}"
+    firewall_config:
+      enable: "{{ item.enable | default(1) }}"
+      policy_in: "{{ item.policy_in | default('ACCEPT') }}"
+      policy_out: "{{ item.policy_out | default('ACCEPT') }}"
+  loop: "{{ proxmox_firewall_rules | default([]) }}"
+  when: 
+    - proxmox_root_password is defined
+    - proxmox_firewall_rules is defined
+  tags: [proxmox_configuration]

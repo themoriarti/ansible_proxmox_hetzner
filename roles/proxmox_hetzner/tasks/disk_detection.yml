@@ -1,0 +1,74 @@
+---
+# Disk detection and analysis tasks
+
+- name: Gather hardware facts
+  ansible.builtin.setup:
+    gather_subset:
+      - hardware
+      - devices
+  tags: [disk_detection]
+
+- name: Detect available disks
+  ansible.builtin.set_fact:
+    detected_disks: "{{ ansible_devices | dict2items | selectattr('value.type', 'defined') | selectattr('value.type', 'in', ['disk', 'nvme']) | list }}"
+  tags: [disk_detection]
+
+- name: Filter disks by size and exclude patterns
+  ansible.builtin.set_fact:
+    filtered_disks: >-
+      {{
+        detected_disks | selectattr('value.size', 'defined') |
+        selectattr('value.size', 'match', '.*G$') |
+        map('regex_replace', 'value.size', 'G$', '') |
+        map('int') |
+        select('>=', disk_detection.min_disk_size_gb) |
+        list
+      }}
+  vars:
+    disk_detection:
+      min_disk_size_gb: "{{ disk_detection.min_disk_size_gb | default(10) }}"
+  tags: [disk_detection]
+
+- name: Create disk configuration
+  ansible.builtin.set_fact:
+    disk_config: >-
+      {{
+        {
+          'boot_disk': detected_disks[0].key if detected_disks | length > 0 else '',
+          'data_disks': detected_disks[1:] | map(attribute='key') | list if detected_disks | length > 1 else [],
+          'all_disks': detected_disks | map(attribute='key') | list,
+          'disk_count': detected_disks | length
+        }
+      }}
+  tags: [disk_detection]
+
+- name: Display detected disk configuration
+  ansible.builtin.debug:
+    msg:
+      - "Boot disk: {{ disk_config.boot_disk }}"
+      - "Data disks: {{ disk_config.data_disks }}"
+      - "Total disks: {{ disk_config.disk_count }}"
+      - "Disk details: {{ detected_disks | map(attribute='value') | list }}"
+  tags: [disk_detection]
+
+- name: Create Hetzner installimage configuration
+  ansible.builtin.template:
+    src: hetzner_installimage.conf.j2
+    dest: "{{ hetzner_config_path }}"
+    mode: '0644'
+  when: hetzner_settings.enable_installimage | default(true)
+  tags: [disk_detection, hetzner_config]
+
+- name: Create ZFS pool configuration
+  ansible.builtin.set_fact:
+    zfs_pool_config: >-
+      {{
+        {
+          'pool_name': proxmox_storage.zfs_pool_name | default('rpool'),
+          'disks': disk_config.data_disks,
+          'raid_level': 'mirror' if disk_config.data_disks | length >= 2 else 'stripe',
+          'encryption': true
+        }
+      }}
+  when: proxmox_storage.enable_zfs | default(true)
+  tags: [disk_detection, zfs_config]

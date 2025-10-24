@@ -1,0 +1,81 @@
+---
+# System preparation tasks
+
+- name: Update package cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  tags: [system_preparation]
+
+- name: Install required packages
+  ansible.builtin.apt:
+    name: "{{ proxmox_packages }}"
+    state: present
+  tags: [system_preparation]
+
+- name: Configure timezone
+  ansible.builtin.timezone:
+    name: "{{ ansible_facts.timezone | default('UTC') }}"
+  tags: [system_preparation]
+
+- name: Configure hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+  tags: [system_preparation]
+
+- name: Update /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "127.0.1.1 {{ inventory_hostname }} {{ inventory_hostname }}.{{ ansible_facts.domain | default('local') }}"
+    regexp: '^127\.0\.1\.1'
+  tags: [system_preparation]
+
+- name: Configure SSH
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    backup: true
+    mode: '0644'
+  notify: restart ssh
+  tags: [system_preparation]
+
+- name: Ensure SSH service is enabled and started
+  ansible.builtin.systemd:
+    name: ssh
+    enabled: true
+    state: started
+  tags: [system_preparation]
+
+- name: Configure firewall (basic)
+  ansible.builtin.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+  tags: [system_preparation]
+
+- name: Allow SSH through firewall
+  ansible.builtin.ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+  tags: [system_preparation]
+
+- name: Create necessary directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "/isos"
+    - "/backups"
+    - "/vm-drives"
+    - "/root/.ssh"
+  tags: [system_preparation]
+
+- name: Set up SSH keys for root
+  ansible.builtin.authorized_key:
+    user: root
+    key: "{{ item }}"
+    state: present
+  loop: "{{ proxmox_ssh_keys | default([]) }}"
+  tags: [system_preparation]

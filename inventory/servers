@@ -1,15 +1,14 @@
-[linode]
-
-[qnap]
-
 [hetzner]
-prox1.cp.if.ua    ansible_host=195.201.84.126
-prox2.cp.if.ua    ansible_host=136.243.73.211
+mgr.cp.if.ua      ansible_host=144.76.18.89
+#prox1.cp.if.ua    ansible_host=94.130.219.53
+#prox2.cp.if.ua    ansible_host=142.132.155.32
 
 [rebuild_hetzner_deb12_zfs]
-prox1.cp.if.ua    ansible_host=195.201.84.126
-prox2.cp.if.ua    ansible_host=136.243.73.211
+mgr.cp.if.ua      ansible_host=144.76.18.89
+#prox1.cp.if.ua    ansible_host=94.130.219.53
+#prox2.cp.if.ua    ansible_host=142.132.155.32
 
 [pve]
-prox1.cp.if.ua    ansible_host=195.201.84.126
-prox2.cp.if.ua    ansible_host=136.243.73.211
+mgr.cp.if.ua      ansible_host=144.76.18.89
+#prox1.cp.if.ua    ansible_host=94.130.219.53
+#prox2.cp.if.ua    ansible_host=142.132.155.32

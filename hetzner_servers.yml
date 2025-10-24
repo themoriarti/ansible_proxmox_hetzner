@@ -1,0 +1,15 @@
+- hosts: localhost
+  tasks:
+    - name: Gather Hetzner Robot inventory
+      community.hrobot.robot:
+        api_token: your_hetzner_robot_api_token_here
+      register: hetzner_servers
+
+    - name: Filter servers by name
+      set_fact:
+        filtered_servers: "{{ hetzner_servers | json_query('servers[?starts_with(name, `prox`)]') }}"
+
+    - name: Use filtered servers
+      debug:
+        msg: "Server name starts with 'prox': {{ item.name }}"
+      loop: "{{ filtered_servers }}"
